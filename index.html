@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ 算法刷题训练营</title>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN SYSTEM
+   ═══════════════════════════════════════════ */
+:root {
+  --bg: #0a0e14;
+  --surface: #131820;
+  --surface2: #1a2030;
+  --surface3: #212a3a;
+  --border: #2a3548;
+  --border-light: #323e55;
+  --text: #dde2ea;
+  --text2: #7c889e;
+  --text3: #58647a;
+  --accent: #4da6ff;
+  --accent-glow: rgba(77,166,255,.18);
+  --accent-soft: rgba(77,166,255,.08);
+  --green: #26bb5c;
+  --green-soft: rgba(38,187,92,.1);
+  --orange: #e0a830;
+  --orange-soft: rgba(224,168,48,.1);
+  --red: #f2443d;
+  --red-soft: rgba(242,68,61,.1);
+  --purple: #8b5cf6;
+  --radius: 10px;
+  --radius-sm: 7px;
+  --radius-xs: 5px;
+  --font: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;
+  --mono: "SF Mono","Fira Code","JetBrains Mono",Consolas,monospace;
+}
+[data-theme="light"] {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface2: #f0f3f8;
+  --surface3: #e4e9f2;
+  --border: #d5dbe5;
+  --border-light: #c8d0db;
+  --text: #1a2030;
+  --text2: #58647a;
+  --text3: #8a97ad;
+  --accent: #1a73e8;
+  --accent-glow: rgba(26,115,232,.12);
+  --accent-soft: rgba(26,115,232,.05);
+  --green: #188038;
+  --orange: #b8700a;
+  --red: #d93025;
+  --purple: #7c3aed;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ═══ Navbar ═══ */
+.navbar{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.navbar-inner{max-width:1140px;margin:0 auto;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:var(--text);text-decoration:none;letter-spacing:-.2px}
+.brand-icon{font-size:21px;line-height:1}
+.brand-sub{font-size:12px;color:var(--text2);font-weight:400}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-stat{font-size:12px;color:var(--text2);padding:5px 12px;background:var(--surface2);border-radius:14px;font-weight:500}
+.theme-btn{background:none;border:1px solid var(--border);color:var(--text2);cursor:pointer;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+/* ═══ Account ═══ */
+.acct-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:5px 14px;border-radius:16px;font-size:12px;font-weight:500;transition:all .2s;display:flex;align-items:center;gap:6px;font-family:var(--font)}
+.acct-btn:hover{border-color:var(--accent);color:var(--accent)}
+.acct-btn.logged-in{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.acct-avatar{width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.acct-dropdown{position:absolute;top:100%;right:0;margin-top:6px;min-width:180px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.25);padding:8px;z-index:200;display:none}
+.acct-dropdown.show{display:block}
+.acct-dropdown-item{padding:8px 12px;border-radius:var(--radius-xs);cursor:pointer;font-size:13px;color:var(--text);transition:background .15s;display:flex;align-items:center;gap:8px}
+.acct-dropdown-item:hover{background:var(--surface2)}
+.acct-dropdown-item.danger{color:var(--red)}
+.acct-dropdown-item.danger:hover{background:var(--red-soft)}
+.acct-dropdown-divider{height:1px;background:var(--border);margin:6px 0}
+
+/* ═══ Auth Modal ═══ */
+.auth-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.auth-modal-overlay.open{display:flex}
+.auth-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:380px;max-width:92vw;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.4);animation:modalIn .2s ease}
+.auth-modal-header{padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between}
+.auth-modal-header h2{font-size:18px;font-weight:700}
+.auth-modal-close{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;transition:color .15s}
+.auth-modal-close:hover{color:var(--text)}
+.auth-tabs{display:flex;gap:0;margin:16px 20px 0;border-bottom:1px solid var(--border)}
+.auth-tab{flex:1;padding:10px 0;text-align:center;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font)}
+.auth-tab:hover{color:var(--text)}
+.auth-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.auth-body{padding:20px}
+.auth-field{margin-bottom:14px}
+.auth-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px}
+.auth-input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;outline:none;transition:border-color .2s;font-family:var(--font)}
+.auth-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.auth-input::placeholder{color:var(--text3)}
+.auth-error{font-size:12px;color:var(--red);margin-bottom:12px;display:none}
+.auth-error.show{display:block}
+.auth-submit{width:100%;padding:11px 0;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--font)}
+.auth-submit:hover{opacity:.9;transform:translateY(-1px)}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.auth-info{font-size:11px;color:var(--text2);text-align:center;margin-top:12px}
+
+/* ═══ Knowledge Map ═══ */
+.map-wrap{padding:20px 0 2px;overflow-x:auto;display:flex;justify-content:center}
+.map-svg{min-width:600px;max-width:100%;height:auto}
+.map-node{cursor:pointer;transition:transform .2s}
+.map-node:hover{transform:translateY(-1.5px)}
+.map-node:hover rect{filter:brightness(1.15)}
+
+/* ═══ Stage Nav ═══ */
+.stage-nav{display:flex;gap:8px;overflow-x:auto;padding:0 24px 20px;justify-content:center;flex-wrap:wrap}
+.stage-tab{flex-shrink:0;padding:12px 20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer;text-align:center;transition:all .2s;min-width:105px;position:relative}
+.stage-tab:hover{border-color:var(--accent);background:var(--accent-soft)}
+.stage-tab.active{background:var(--accent-soft);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.stage-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.stage-count{font-size:11px;color:var(--text2)}
+.stage-bar{height:3px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden}
+.stage-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .5s ease}
+.stage-tab.active .stage-bar-fill{background:linear-gradient(90deg,var(--accent),var(--purple))}
+
+/* ═══ Controls ═══ */
+.controls{max-width:1140px;margin:0 auto;padding:0 24px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:200px;position:relative}
+.search-wrap::before{content:"\1F50D";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text2);pointer-events:none;z-index:1}
+.search-input{width:100%;padding:10px 14px 10px 34px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.search-input::placeholder{color:var(--text3)}
+.diff-filter{display:flex;gap:5px}
+.diff-btn{padding:6px 15px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--text2);cursor:pointer;font-size:12px;transition:all .2s;white-space:nowrap;font-weight:500}
+.diff-btn:hover{border-color:var(--accent);color:var(--accent)}
+.diff-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cat-filter{display:flex;gap:5px;flex-wrap:wrap}
+.cat-btn{padding:5px 13px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--text2);cursor:pointer;font-size:11px;transition:all .2s;white-space:nowrap}
+.cat-btn:hover{border-color:var(--accent);color:var(--text)}
+.cat-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+
+/* ═══ Stats ═══ */
+.stats-row{max-width:1140px;margin:0 auto;padding:0 24px 20px;display:flex;gap:14px;flex-wrap:wrap}
+.stat-card{flex:1;min-width:110px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;text-align:center;transition:all .2s}
+.stat-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.stat-num{font-size:24px;font-weight:700;color:var(--accent);letter-spacing:-.5px}
+.stat-num.green{color:var(--green)}
+.stat-label{font-size:12px;color:var(--text2);margin-top:3px;font-weight:500}
+
+/* ═══ Problem Grid ═══ */
+.container{max-width:1140px;margin:0 auto;padding:0 24px 40px}
+.section-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.problem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.problem-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.problem-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.problem-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;transition:all .25s}
+.problem-card.status-ac::before{background:var(--green)}
+.problem-card.status-read::before{background:var(--accent)}
+.problem-card.status-ac{border-color:rgba(38,187,92,.2)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.card-id{font-size:12px;color:var(--text3);font-weight:600;font-family:var(--mono)}
+.card-id-num{font-size:18px;color:var(--accent);font-weight:700}
+.diff-badge{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600;letter-spacing:.2px}
+.diff-easy{background:var(--green-soft);color:var(--green)}
+.diff-medium{background:var(--orange-soft);color:var(--orange)}
+.diff-hard{background:var(--red-soft);color:var(--red)}
+.card-title{font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text);line-height:1.4}
+.card-meta{display:flex;gap:14px;font-size:11px;color:var(--text2);margin-bottom:10px}
+.card-meta span{display:flex;align-items:center;gap:4px}
+.card-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:11px;padding:3px 9px;border-radius:8px;background:var(--surface2);color:var(--text2);font-weight:500}
+.status-marker{position:absolute;top:14px;right:14px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px}
+.status-marker.ac{background:var(--green-soft);color:var(--green)}
+
+.empty-state{text-align:center;padding:50px 20px;color:var(--text2);display:none}
+.empty-state p{font-size:15px}
+.congrats{display:none;text-align:center;padding:24px;margin-bottom:20px;background:var(--green-soft);border:1px solid var(--green);border-radius:var(--radius);animation:slideDown .4s ease}
+.congrats p{font-size:15px;color:var(--green);font-weight:600}
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ Modal ═══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;max-width:880px;width:100%;max-height:90vh;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.5);animation:modalIn .25s ease;display:flex;flex-direction:column}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-header-left{display:flex;align-items:center;gap:12px}
+.modal-header h2{font-size:19px;font-weight:700}
+.modal-close{background:none;border:1px solid var(--border);color:var(--text2);cursor:pointer;font-size:20px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.modal-close:hover{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+
+/* ═══ Modal Tabs ═══ */
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 24px;flex-shrink:0;background:var(--surface)}
+.modal-tab-btn{flex:1;max-width:160px;padding:12px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;text-align:center}
+.modal-tab-btn:hover{color:var(--text);background:var(--surface2)}
+.modal-tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.modal-tab-icon{font-size:15px;display:block;margin-bottom:2px}
+.modal-body{flex:1;overflow-y:auto;padding:20px 24px 24px}
+.modal-tab-panel{display:none;animation:fadeIn .25s ease}
+.modal-tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.modal-section{margin-bottom:22px}
+.modal-section h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.info-item{background:var(--surface2);padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--border)}
+.info-label{font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.info-value{font-size:13px;font-weight:600;color:var(--text)}
+.problem-desc{color:var(--text);line-height:1.8;font-size:14px}
+.problem-desc p{margin-bottom:10px}
+.io-block{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:10px}
+.io-block h4{font-size:12px;color:var(--accent);margin-bottom:6px}
+.io-block pre{margin:0;font-family:var(--mono);font-size:13px;color:var(--text);white-space:pre-wrap;word-break:break-all}
+
+/* ═══ Solution ═══ */
+.solution-toggle{display:block;width:100%;padding:12px 16px;background:var(--surface2);border:1px dashed var(--border);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;font-size:13px;font-weight:600;text-align:center;transition:all .2s;margin-bottom:10px}
+.solution-toggle:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.solution-toggle .arrow{display:inline-block;transition:transform .3s ease;margin-right:6px}
+.solution-toggle.open .arrow{transform:rotate(90deg)}
+.solution-collapse{max-height:0;overflow:hidden;transition:max-height .4s ease,opacity .3s ease;opacity:0}
+.solution-collapse.expanded{max-height:10000px;opacity:1}
+.code-wrapper{position:relative;margin-bottom:14px}
+.code-wrapper pre{margin:0;border:1px solid var(--border);border-radius:var(--radius-sm);overflow-x:auto}
+.code-wrapper code{font-family:var(--mono);font-size:13px;line-height:1.65}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--surface3);border:1px solid var(--border);color:var(--text2);padding:5px 14px;border-radius:var(--radius-xs);cursor:pointer;font-size:12px;transition:all .2s;opacity:0}
+.code-wrapper:hover .copy-btn{opacity:1}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.copy-btn.copied{background:var(--green)!important;color:#fff!important;border-color:var(--green)!important}
+.explanation{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:14px 18px;line-height:1.8;font-size:13px}
+.explanation h4{color:var(--accent);margin-bottom:8px;font-size:13px}
+.explanation p{margin-bottom:8px}
+
+/* ═══ Judge ═══ */
+.judge-section{margin-bottom:22px}
+.judge-section h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.judge-editor-wrap{position:relative;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;background:var(--surface2)}
+.judge-editor-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.judge-ln{position:absolute;left:0;top:0;bottom:0;width:44px;background:var(--surface3);border-right:1px solid var(--border);padding:14px 0;text-align:center;font-family:var(--mono);font-size:12px;color:var(--text3);line-height:1.7;overflow:hidden;pointer-events:none;user-select:none}
+.judge-editor{width:100%;min-height:220px;padding:14px 16px 14px 52px;background:transparent;color:var(--text);border:none;outline:none;font-family:var(--mono);font-size:13px;line-height:1.7;resize:vertical;tab-size:4}
+.judge-editor::placeholder{color:var(--text3)}
+.judge-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.judge-submit-btn{padding:9px 22px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:6px}
+.judge-submit-btn:hover{background:#3d93e8;transform:translateY(-1px);box-shadow:0 4px 12px var(--accent-glow)}
+.judge-submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.judge-load-btn{padding:8px 16px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;transition:all .2s}
+.judge-load-btn:hover{border-color:var(--accent);background:var(--accent-soft)}
+.judge-results{margin-bottom:16px;display:none}
+.judge-results.show{display:block}
+.verdict-bar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--radius-sm);margin-bottom:10px;font-weight:600;font-size:14px}
+.verdict-bar.ac{background:var(--green-soft);border:1px solid var(--green);color:var(--green)}
+.verdict-bar.wa{background:var(--red-soft);border:1px solid var(--red);color:var(--red)}
+.verdict-bar.tle{background:var(--orange-soft);border:1px solid var(--orange);color:var(--orange)}
+.verdict-bar.ce{background:rgba(240,136,62,.1);border:1px solid #f0883e;color:#f0883e}
+.verdict-bar.re{background:rgba(163,113,247,.1);border:1px solid #a371f7;color:#a371f7}
+.verdict-bar.unknown{background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
+.verdict-bar .verdict-icon{font-size:22px}
+.verdict-bar .verdict-meta{margin-left:auto;font-size:12px;font-weight:400;opacity:.8}
+.verdict-details{font-size:12px}
+.verdict-row{display:flex;align-items:center;gap:8px;padding:9px 14px;margin-bottom:4px;background:var(--surface2);border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px}
+.verdict-row .v-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.verdict-row .v-dot.ac{background:var(--green)}
+.verdict-row .v-dot.wa{background:var(--red)}
+.verdict-row .v-dot.tle{background:var(--orange)}
+.verdict-row .v-dot.ce{background:#f0883e}
+.verdict-row .v-dot.re{background:#a371f7}
+.verdict-row .v-label{flex:1}
+.verdict-row .v-time{color:var(--text2)}
+.ce-block{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:10px;font-family:var(--mono);font-size:12px;color:var(--red);white-space:pre-wrap;max-height:200px;overflow-y:auto}
+.diff-block{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:8px;max-height:200px;overflow-y:auto}
+.diff-block .d-label{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;font-weight:600;letter-spacing:.3px}
+.diff-block pre{margin:0;font-family:var(--mono);font-size:12px;color:var(--text);white-space:pre-wrap}
+.diff-block .expected{color:var(--green)}
+.diff-block .actual{color:var(--red)}
+.verdict-row.hidden-row{opacity:.85}
+.hidden-badge{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--orange-soft);color:var(--orange);margin-left:6px}
+.hidden-hint{background:rgba(224,168,48,.04)}
+.hidden-hint pre{color:var(--orange);font-style:italic}
+
+/* Custom test */
+.custom-test-section{margin-bottom:22px}
+.custom-test-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+@media(max-width:500px){.custom-test-grid{grid-template-columns:1fr}}
+.custom-test-label{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;font-weight:600;letter-spacing:.3px}
+.custom-test-textarea{width:100%;min-height:80px;padding:10px 14px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--mono);font-size:12px;resize:vertical;outline:none}
+.custom-test-textarea:focus{border-color:var(--accent)}
+
+/* ═══ AI Analysis ═══ */
+.ai-analyze-btn{padding:9px 20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:6px}
+.ai-analyze-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,.3)}
+.ai-analyze-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.ai-analyze-locked{background:var(--surface3);color:var(--text2);border:1px solid var(--border)}
+.ai-analyze-locked:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);background:var(--border)}
+.ai-panel{margin-top:12px;display:none;animation:fadeIn .3s ease}
+.ai-panel.show{display:block}
+.ai-panel-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px}
+.ai-panel-section h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ai-diagnosis{font-size:13px;color:var(--text);line-height:1.7}
+.ai-skills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ai-skill-tag{padding:4px 12px;border-radius:14px;font-size:12px;background:var(--red-soft);border:1px solid rgba(242,68,61,.3);color:var(--red)}
+.ai-tip{font-size:13px;color:var(--text2);line-height:1.7;padding:12px 16px;background:var(--surface);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-top:8px}
+.ai-practice-card{background:var(--surface);border:1px solid var(--purple);border-radius:var(--radius);padding:18px 22px;position:relative;overflow:hidden}
+.ai-practice-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899)}
+.ai-practice-card h4{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px}
+.ai-practice-meta{display:flex;gap:10px;margin-bottom:10px;font-size:12px;color:var(--text2)}
+.ai-practice-desc{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px;max-height:100px;overflow-y:auto}
+.ai-practice-actions{display:flex;gap:8px;margin-top:12px}
+.ai-practice-btn{padding:9px 20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.ai-practice-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,.3)}
+.ai-loading{text-align:center;padding:24px;color:var(--text2)}
+.ai-loading-spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ Footer ═══ */
+footer{text-align:center;padding:28px;color:var(--text3);font-size:12px;border-top:1px solid var(--border)}
+
+/* ═══ Responsive ═══ */
+@media(max-width:768px){
+  .problem-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .stage-tab{min-width:85px;padding:10px 14px}
+  .map-svg{min-width:620px}
+  .modal{max-height:95vh}
+  .modal-header h2{font-size:16px}
+}
+@media(max-width:500px){
+  .problem-grid{grid-template-columns:1fr}
+  .navbar-inner{padding:0 14px}
+  .controls{padding:0 14px 14px;flex-direction:column}
+  .diff-filter{width:100%;justify-content:center}
+  .search-wrap{width:100%}
+  .stage-nav{padding:0 10px 14px;justify-content:flex-start;flex-wrap:nowrap}
+  .stats-row{padding:0 10px 14px}
+  .modal-tab-btn{font-size:11px;padding:10px 8px}
+  .judge-ln{width:36px;font-size:11px}
+  .judge-editor{padding-left:42px;font-size:12px}
+}
+/* ═══ Membership ═══ */
+.member-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2001;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.member-modal-overlay.open{display:flex}
+.member-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;max-width:680px;width:90vw;max-height:85vh;overflow-y:auto}
+.member-modal-close{position:absolute;right:16px;top:16px;background:0;border:0;color:var(--text2);font-size:22px;cursor:pointer}
+.member-plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:20px 0}
+.member-plan{border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 14px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);position:relative}
+.member-plan:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 16px var(--accent-glow)}
+.member-plan.selected{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent)}
+.member-plan-tag{position:absolute;top:-10px;right:-8px;background:var(--accent);color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.member-plan-icon{font-size:28px;margin-bottom:8px}
+.member-plan-name{font-size:15px;font-weight:600;margin-bottom:4px}
+.member-plan-price{font-size:24px;font-weight:700;color:var(--accent)}
+.member-plan-price small{font-size:12px;font-weight:400;color:var(--text2)}
+.member-plan-days{font-size:12px;color:var(--text2);margin-top:4px}
+.member-btn{display:block;width:100%;padding:12px;margin-top:16px;background:linear-gradient(135deg,var(--accent),#6366f1);color:#fff;border:0;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.member-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(99,102,241,.3)}
+.member-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.member-info{font-size:13px;color:var(--text2);text-align:center;margin:12px 0}
+.member-badge{display:inline-block;font-size:10px;background:linear-gradient(135deg,#f59e0b,#eab308);color:#1a1a2e;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:6px;vertical-align:middle}
+.acct-dropdown-item.member-upgrade{color:var(--accent);font-weight:600;border-top:1px solid var(--border);margin-top:4px;padding-top:10px}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="#" class="brand"><span class="brand-icon">&#x1f4bb;</span>C++ 刷题训练营</a>
+    <div class="nav-right" style="position:relative">
+      <span class="nav-stat" id="navProgress"></span>
+      <button class="acct-btn" id="acctBtn" onclick="toggleAcctDropdown(event)" title="账号">
+        <span id="acctBtnText">登录</span>
+      </button>
+      <div class="acct-dropdown" id="acctDropdown">
+        <div class="acct-dropdown-item" id="ddMembership" onclick="showMembershipModal()" style="display:none;color:var(--accent);font-weight:600">开通会员</div>
+        <div class="acct-dropdown-item" onclick="showAuthModal('login')">切换账号</div>
+        <div class="acct-dropdown-item danger" onclick="handleLogout()">退出登录</div>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()" title="切换主题">&#x1f319;</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Knowledge Map -->
+<div class="map-wrap"><svg class="map-svg" viewBox="0 0 600 68" id="knowledgeMap"></svg></div>
+
+<!-- Stage Navigation -->
+<div class="stage-nav" id="stageNav"></div>
+
+<!-- Stats -->
+<div class="stats-row" id="statsRow"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="search-wrap">
+    <input type="text" class="search-input" id="searchInput" placeholder="搜索题目、标签或关键词..." oninput="renderProblems()">
+  </div>
+  <div class="diff-filter" id="diffFilter"></div>
+</div>
+<div class="controls" style="padding-top:0;justify-content:flex-start">
+  <div class="cat-filter" id="catFilter"></div>
+</div>
+
+<!-- Content -->
+<main class="container">
+  <div class="congrats" id="congratsBanner"><p>&#x1f389; 恭喜！你已完成全部 50 道题目</p></div>
+  <div class="section-title" id="sectionTitle"></div>
+  <div class="problem-grid" id="problemGrid"></div>
+  <div class="empty-state" id="emptyState"><p>没有找到匹配的题目</p></div>
+</main>
+
+<!-- Auth Modal -->
+<div class="auth-modal-overlay" id="authModalOverlay" onclick="closeAuthModal(event)">
+  <div class="auth-modal" onclick="event.stopPropagation()">
+    <div class="auth-modal-header">
+      <h2 id="authModalTitle">登录</h2>
+      <button class="auth-modal-close" onclick="closeAuthModal()">&times;</button>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-auth-tab="login" onclick="switchAuthTab('login')">登录</button>
+      <button class="auth-tab" data-auth-tab="register" onclick="switchAuthTab('register')">注册</button>
+    </div>
+    <div class="auth-body">
+      <div class="auth-field">
+        <label class="auth-label">用户名</label>
+        <input type="text" class="auth-input" id="authUsername" placeholder="输入用户名" autocomplete="username">
+      </div>
+      <div class="auth-field" id="authPasswordField">
+        <label class="auth-label">密码</label>
+        <input type="password" class="auth-input" id="authPassword" placeholder="输入密码" autocomplete="current-password">
+      </div>
+      <div class="auth-field" id="authPassword2Field" style="display:none">
+        <label class="auth-label">确认密码</label>
+        <input type="password" class="auth-input" id="authPassword2" placeholder="再次输入密码" autocomplete="new-password">
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <button class="auth-submit" id="authSubmit" onclick="handleAuthSubmit()">登录</button>
+      <div class="auth-info" id="authInfo"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal"></div>
+</div>
+
+<footer>C++ 算法刷题训练营 · 50 道精选题 · 7 个阶段 · 系统化算法学习</footer>
+
+<!-- Highlight.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-theme">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/cpp.min.js"></script>
+
+<!-- Data Files -->
+<script src="problems-stage1-4.js"></script>
+<script src="problems-stage5-7.js"></script>
+
+<script>
+// ═══ Data ═══
+const allProblems = [...PROBLEMS_STAGE1_4, ...PROBLEMS_STAGE5_7];
+
+const stageIds = [...new Set(allProblems.map(p => p.stage))].sort((a,b) => a-b);
+const stageInfo = stageIds.map(sid => {
+  const probs = allProblems.filter(p => p.stage === sid);
+  return { id: sid, name: probs[0].stageName, count: probs.length };
+});
+
+const STAGE_COLORS = [
+  '#4da6ff','#26bb5c','#e0a830','#f2443d','#8b5cf6','#f0883e','#36d6e7'
+];
+
+let currentStage = stageInfo[0].id;
+let currentDiff = "all";
+let currentCategory = "all";
+
+// ═══ Account State ═══
+const AK = "cpp-auth-token";
+let acctToken = sessionStorage.getItem(AK) || localStorage.getItem(AK) || "";
+let acctUsername = "";
+let acctLoggedIn = false;
+let acctMember = false;
+let acctMembershipInfo = null;
+
+async function loadUserFromServer() {
+  if (!acctToken) return false;
+  try {
+    const resp = await fetch(AUTH_URL + "/api/user", {
+      headers: {"Authorization": "Bearer " + acctToken}
+    });
+    if (!resp.ok) { acctToken = ""; localStorage.removeItem(AK); return false; }
+    const data = await resp.json();
+    if (!data.logged_in) { acctToken = ""; localStorage.removeItem(AK); return false; }
+    acctUsername = data.username;
+    acctLoggedIn = true;
+    // Store membership info
+    if (data.membership && data.membership.member) {
+      acctMember = true;
+      acctMembershipInfo = data.membership;
+    } else {
+      acctMember = false;
+      acctMembershipInfo = null;
+    }
+    updateAcctUI();
+    return true;
+  } catch { return false; }
+}
+
+function saveToken(token) {
+  acctToken = token;
+  if (token) {
+    localStorage.setItem(AK, token);
+    sessionStorage.setItem(AK, token);
+  } else {
+    localStorage.removeItem(AK);
+    sessionStorage.removeItem(AK);
+  }
+}
+
+// ═══ Progress (Cloud-Synced) ═══
+const PK = "cpp-practice-progress";
+function loadProgress() {
+  try { const r = localStorage.getItem(PK); return r ? JSON.parse(r) : {}; }
+  catch { return {}; }
+}
+function saveProgress(p) {
+  localStorage.setItem(PK, JSON.stringify(p));
+  // Sync to server if logged in
+  if (acctLoggedIn && acctToken) {
+    fetch(JUDGE_URL + "/api/save-progress", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + acctToken
+      },
+      body: JSON.stringify({progress: p})
+    }).catch(() => {});
+  }
+}
+async function syncProgressFromServer() {
+  if (!acctLoggedIn || !acctToken) return;
+  try {
+    const resp = await fetch(AUTH_URL + "/api/user", {
+      headers: {"Authorization": "Bearer " + acctToken}
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (data.logged_in && data.progress) {
+      // Merge: server progress takes priority
+      const local = loadProgress();
+      const merged = {...local, ...data.progress};
+      localStorage.setItem(PK, JSON.stringify(merged));
+      // Also sync theme
+      if (data.theme) {
+        const current = localStorage.getItem(TK);
+        if (!current || current === "dark") {
+          document.documentElement.setAttribute("data-theme", data.theme);
+          document.querySelector(".theme-btn").innerHTML = data.theme === "dark" ? "🌙" : "☀️";
+          localStorage.setItem(TK, data.theme);
+          document.getElementById("hljs-theme").href = data.theme === "dark"
+            ? "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+            : "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css";
+        }
+      }
+    }
+  } catch {}
+}
+function getStatus(pid) { return loadProgress()[pid] || "unstarted"; }
+function setStatus(pid, status) {
+  const p = loadProgress();
+  if (status === "ac") p[pid] = "ac";
+  else if (status === "read") { if (p[pid] !== "ac") p[pid] = "read"; }
+  else delete p[pid];
+  saveProgress(p);
+  updateAllUI();
+}
+function stageProgress(sid) {
+  const probs = allProblems.filter(p => p.stage === sid);
+  const pg = loadProgress();
+  const ac = probs.filter(p => pg[p.id] === "ac").length;
+  return { total: probs.length, ac };
+}
+function totalProgress() {
+  const pg = loadProgress();
+  const ac = allProblems.filter(p => pg[p.id] === "ac").length;
+  const read = allProblems.filter(p => pg[p.id] === "read").length;
+  return { total: allProblems.length, ac, read };
+}
+
+// ═══ Theme ═══
+const TK = "cpp-theme";
+function toggleTheme() {
+  const h = document.documentElement;
+  const dark = h.getAttribute("data-theme") === "dark";
+  const nt = dark ? "light" : "dark";
+  h.setAttribute("data-theme", nt);
+  document.querySelector(".theme-btn").innerHTML = nt === "dark" ? "&#x1f319;" : "&#x2600;&#xfe0f;";
+  localStorage.setItem(TK, nt);
+  document.getElementById("hljs-theme").href = nt === "dark"
+    ? "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+    : "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css";
+  // Sync theme to server
+  if (acctLoggedIn && acctToken) {
+    fetch(JUDGE_URL + "/api/save-progress", {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "Authorization": "Bearer " + acctToken},
+      body: JSON.stringify({progress: loadProgress(), theme: nt})
+    }).catch(() => {});
+  }
+}
+(function() {
+  const s = localStorage.getItem(TK) || "dark";
+  document.documentElement.setAttribute("data-theme", s);
+  document.querySelector(".theme-btn").innerHTML = s === "dark" ? "&#x1f319;" : "&#x2600;&#xfe0f;";
+  document.getElementById("hljs-theme").href = s === "dark"
+    ? "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+    : "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css";
+})();
+
+// ═══ Account UI ═══
+const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+const JUDGE_URL = isLocal ? "http://127.0.0.1:8765" : "http://82.156.34.78";
+const AUTH_URL = isLocal ? "http://127.0.0.1:8765" : "";
+
+function updateAcctUI() {
+  const btn = document.getElementById("acctBtn");
+  const text = document.getElementById("acctBtnText");
+  const ddMember = document.getElementById("ddMembership");
+  if (acctLoggedIn && acctUsername) {
+    const initial = acctUsername[0].toUpperCase();
+    let badgeHtml = acctMember ? `<span class="member-badge">会员</span>` : "";
+    btn.innerHTML = `<span class="acct-avatar">${initial}</span><span id="acctBtnText">${acctUsername}</span>${badgeHtml}`;
+    btn.classList.add("logged-in");
+    ddMember.style.display = acctMember ? "none" : "block";
+  } else {
+    btn.innerHTML = '<span id="acctBtnText">登录</span>';
+    btn.classList.remove("logged-in");
+    ddMember.style.display = "none";
+  }
+}
+
+function toggleAcctDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById("acctDropdown");
+  if (acctLoggedIn) {
+    dd.classList.toggle("show");
+  } else {
+    showAuthModal("login");
+  }
+}
+
+document.addEventListener("click", () => {
+  document.getElementById("acctDropdown").classList.remove("show");
+});
+
+// ═══ Auth Modal ═══
+let authMode = "login";
+
+function showAuthModal(mode) {
+  authMode = mode;
+  document.getElementById("authModalOverlay").classList.add("open");
+  document.getElementById("authError").classList.remove("show");
+  document.getElementById("authError").textContent = "";
+  document.getElementById("authInfo").textContent = "";
+  switchAuthTab(mode);
+  document.getElementById("authUsername").value = "";
+  document.getElementById("authPassword").value = "";
+  document.getElementById("authPassword2").value = "";
+  setTimeout(() => document.getElementById("authUsername").focus(), 100);
+}
+
+function closeAuthModal(e) {
+  if (e && e.target !== document.getElementById("authModalOverlay")) return;
+  document.getElementById("authModalOverlay").classList.remove("open");
+}
+
+function switchAuthTab(mode) {
+  authMode = mode;
+  document.querySelectorAll(".auth-tab").forEach(t => t.classList.remove("active"));
+  document.querySelector(`.auth-tab[data-auth-tab="${mode}"]`)?.classList.add("active");
+  document.getElementById("authModalTitle").textContent = mode === "login" ? "登录" : "注册";
+  document.getElementById("authSubmit").textContent = mode === "login" ? "登录" : "注册";
+  document.getElementById("authPassword2Field").style.display = mode === "register" ? "block" : "none";
+  document.getElementById("authError").classList.remove("show");
+  document.getElementById("authError").textContent = "";
+  document.getElementById("authInfo").textContent = "";
+}
+
+async function handleAuthSubmit() {
+  const username = document.getElementById("authUsername").value.trim();
+  const password = document.getElementById("authPassword").value;
+  const errEl = document.getElementById("authError");
+  const submitBtn = document.getElementById("authSubmit");
+
+  if (!username || !password) {
+    errEl.textContent = "请填写用户名和密码";
+    errEl.classList.add("show");
+    return;
+  }
+
+  if (authMode === "register") {
+    const password2 = document.getElementById("authPassword2").value;
+    if (password !== password2) {
+      errEl.textContent = "两次密码不一致";
+      errEl.classList.add("show");
+      return;
+    }
+    if (password.length < 4) {
+      errEl.textContent = "密码需至少 4 个字符";
+      errEl.classList.add("show");
+      return;
+    }
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "处理中...";
+  errEl.classList.remove("show");
+
+  try {
+    const endpoint = authMode === "register" ? "/api/register" : "/api/login";
+    const resp = await fetch(AUTH_URL + endpoint, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({username, password})
+    });
+    const data = await resp.json();
+
+    if (!resp.ok || !data.success) {
+      errEl.textContent = data.error || "操作失败";
+      errEl.classList.add("show");
+      return;
+    }
+
+    // Login success
+    saveToken(data.token);
+    acctUsername = data.username;
+    acctLoggedIn = true;
+    // Store membership from response
+    if (data.membership && data.membership.member) {
+      acctMember = true;
+      acctMembershipInfo = data.membership;
+    } else {
+      acctMember = false;
+      acctMembershipInfo = null;
+    }
+    updateAcctUI();
+    closeAuthModal();
+
+    // Merge server progress
+    if (data.progress) {
+      const local = loadProgress();
+      const merged = {...local, ...data.progress};
+      localStorage.setItem(PK, JSON.stringify(merged));
+    }
+    updateAllUI();
+  } catch (e) {
+    errEl.textContent = "无法连接服务器";
+    errEl.classList.add("show");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = authMode === "login" ? "登录" : "注册";
+  }
+}
+
+async function handleLogout() {
+  document.getElementById("acctDropdown").classList.remove("show");
+  if (acctToken) {
+    try {
+      await fetch(AUTH_URL + "/api/logout", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({token: acctToken})
+      });
+    } catch {}
+  }
+  saveToken("");
+  acctUsername = "";
+  acctLoggedIn = false;
+  acctMember = false;
+  acctMembershipInfo = null;
+  updateAcctUI();
+}
+
+// ═══ Membership ═══
+let _selectedPlan = null;
+
+async function showMembershipModal() {
+  document.getElementById("acctDropdown").classList.remove("show");
+  document.getElementById("memberModalOverlay").classList.add("open");
+  document.getElementById("memberPayMsg").textContent = "";
+  document.getElementById("memberPayBtn").disabled = true;
+  document.getElementById("memberPayBtn").textContent = "请选择套餐";
+  _selectedPlan = null;
+  // Load plans and render
+  const plansEl = document.getElementById("memberPlans");
+  const planIcons = {"week":"🎫","month":"⭐","year":"👑","3year":"💎"};
+  try {
+    const resp = await fetch(AUTH_URL + "/api/membership/plans");
+    const data = await resp.json();
+    plansEl.innerHTML = data.plans.map(p => `
+      <div class="member-plan" data-plan="${p.id}" onclick="selectPlan('${p.id}')">
+        ${p.tag ? `<span class="member-plan-tag">${p.tag}</span>` : ""}
+        <div class="member-plan-icon">${planIcons[p.id]||"📦"}</div>
+        <div class="member-plan-name">${p.name}</div>
+        <div class="member-plan-price"><small>¥</small>${p.price}</div>
+        <div class="member-plan-days">${p.days}天</div>
+      </div>
+    `).join("");
+  } catch {
+    plansEl.innerHTML = "<p style='text-align:center;color:var(--text2)'>无法加载套餐</p>";
+  }
+}
+
+function selectPlan(planId) {
+  _selectedPlan = planId;
+  document.querySelectorAll(".member-plan").forEach(el => el.classList.remove("selected"));
+  document.querySelector(`.member-plan[data-plan="${planId}"]`)?.classList.add("selected");
+  const btn = document.getElementById("memberPayBtn");
+  btn.disabled = false;
+  const names = {"week":"7天体验","month":"月卡会员","year":"年卡会员","3year":"三年会员"};
+  const prices = {"week":"10","month":"30","year":"288","3year":"500"};
+  btn.textContent = `立即开通 ${names[planId]||""} ¥${prices[planId]||""}`;
+}
+
+function closeMembershipModal(e) {
+  if (e && e.target !== document.getElementById("memberModalOverlay")) return;
+  document.getElementById("memberModalOverlay").classList.remove("open");
+}
+
+async function createMembershipOrder() {
+  if (!_selectedPlan || !acctToken) return;
+  const btn = document.getElementById("memberPayBtn");
+  const msg = document.getElementById("memberPayMsg");
+  btn.disabled = true;
+  btn.textContent = "创建订单中...";
+  msg.textContent = "";
+  try {
+    const resp = await fetch(AUTH_URL + "/api/membership/create-order", {
+      method: "POST",
+      headers: {"Content-Type":"application/json","Authorization":"Bearer "+acctToken},
+      body: JSON.stringify({plan:_selectedPlan})
+    });
+    const data = await resp.json();
+    if (data.success && data.pay_url) {
+      msg.innerHTML = `<span style="color:var(--green)">订单已创建，正在跳转支付...</span>`;
+      // Open payment page in new window
+      window.open(data.pay_url, "_blank");
+      // Start polling for payment status
+      pollOrderStatus(data.out_trade_no);
+    } else {
+      msg.textContent = data.error || "创建订单失败";
+    }
+  } catch {
+    msg.textContent = "无法连接服务器";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "重新支付";
+  }
+}
+
+async function pollOrderStatus(outTradeNo) {
+  const msg = document.getElementById("memberPayMsg");
+  let attempts = 0;
+  const poll = setInterval(async () => {
+    attempts++;
+    try {
+      const resp = await fetch(AUTH_URL + "/api/orders/check", {
+        method: "POST",
+        headers: {"Content-Type":"application/json","Authorization":"Bearer "+acctToken},
+        body: JSON.stringify({out_trade_no:outTradeNo})
+      });
+      const data = await resp.json();
+      if (data.paid) {
+        clearInterval(poll);
+        acctMember = true;
+        acctMembershipInfo = data.membership || {};
+        updateAcctUI();
+        msg.innerHTML = `<span style="color:var(--green)">支付成功！会员已激活</span>`;
+        setTimeout(() => closeMembershipModal(), 2000);
+      }
+    } catch {}
+    if (attempts > 60) { clearInterval(poll); msg.textContent = "支付状态检查超时，如已支付请刷新页面"; }
+  }, 3000);
+}
+
+// ═══ Knowledge Map ═══
+function drawMap() {
+  const svg = document.getElementById("knowledgeMap");
+  const W = 600, H = 68, nw = 52, nh = 28, gap = 22;
+  const totalW = stageInfo.length * nw + (stageInfo.length - 1) * gap;
+  const sx = Math.max(8, (W - totalW) / 2), y = 18;
+  const pg = loadProgress();
+
+  let arrows = "";
+  for (let i = 1; i < stageInfo.length; i++) {
+    const fx = sx + (i-1)*(nw+gap) + nw;
+    const fy = y + nh/2;
+    const tx = sx + i*(nw+gap);
+    const ty = y + nh/2;
+    arrows += `<line x1="${fx}" y1="${fy}" x2="${tx}" y2="${ty}" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+  }
+
+  let nodes = "";
+  stageInfo.forEach((si, i) => {
+    const sp = stageProgress(si.id);
+    const complete = sp.total > 0 && sp.ac === sp.total;
+    const active = si.id === currentStage;
+    const colorIdx = i % STAGE_COLORS.length;
+    const barColor = STAGE_COLORS[colorIdx];
+    const x = sx + i*(nw+gap);
+
+    let fill, stroke, tfill;
+    if (active) { fill = barColor; stroke = barColor; tfill = "#fff"; }
+    else if (complete) { fill = "var(--green)"; stroke = "var(--green)"; tfill = "#fff"; }
+    else { fill = "var(--surface2)"; stroke = "var(--border)"; tfill = "var(--text)"; }
+
+    // Progress ring
+    const pct = sp.total > 0 ? sp.ac / sp.total : 0;
+    const r = nw/2 + 4, cx = x + nw/2, cy = y + nh/2;
+    let ring = "";
+    if (pct > 0 && !complete) {
+      const circ = 2 * Math.PI * (r-1);
+      const dashLen = circ * pct;
+      ring = `<circle cx="${cx}" cy="${cy}" r="${r-1}" fill="none" stroke="${barColor}" stroke-width="2" stroke-linecap="round"
+        stroke-dasharray="${dashLen} ${circ - dashLen}" transform="rotate(-90 ${cx} ${cy})" opacity="0.3"/>`;
+    } else if (complete) {
+      ring = `<circle cx="${cx}" cy="${cy}" r="${r-1}" fill="none" stroke="var(--green)" stroke-width="2" opacity="0.2"/>`;
+    }
+
+    nodes += `<g class="map-node" onclick="switchStage(${si.id})" style="cursor:pointer">
+      ${ring}
+      <rect x="${x}" y="${y}" width="${nw}" height="${nh}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+      <text x="${x + nw/2}" y="${y + nh/2 + 4}" text-anchor="middle" fill="${tfill}" font-size="12" font-weight="700">S${si.id}</text>
+    </g>`;
+  });
+
+  svg.innerHTML = arrows + nodes;
+}
+
+// ═══ Stage Nav ═══
+function buildStageNav() {
+  const nav = document.getElementById("stageNav");
+  nav.innerHTML = stageInfo.map(si => {
+    const sp = stageProgress(si.id);
+    const pct = sp.total > 0 ? Math.round(sp.ac / sp.total * 100) : 0;
+    return `<div class="stage-tab${si.id === currentStage ? ' active' : ''}" onclick="switchStage(${si.id})">
+      <div class="stage-name">${si.name}</div>
+      <div class="stage-count">${sp.ac}/${sp.total}</div>
+      <div class="stage-bar"><div class="stage-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+}
+
+// ═══ Stats ═══
+function buildStats() {
+  const tp = totalProgress();
+  document.getElementById("statsRow").innerHTML = `
+    <div class="stat-card"><div class="stat-num">${tp.total}</div><div class="stat-label">题目总数</div></div>
+    <div class="stat-card"><div class="stat-num green">${tp.ac}</div><div class="stat-label">已通过</div></div>
+    <div class="stat-card"><div class="stat-num">${tp.read}</div><div class="stat-label">已阅读</div></div>
+    <div class="stat-card"><div class="stat-num">${stageInfo.length}</div><div class="stat-label">学习阶段</div></div>
+  `;
+}
+
+// ═══ Diff Filter ═══
+function buildDiffFilter() {
+  const df = document.getElementById("diffFilter");
+  df.innerHTML = "";
+  ["all","简单","中等","困难"].forEach(d => {
+    df.innerHTML += `<button class="diff-btn${currentDiff === d ? ' active' : ''}" onclick="setDiff('${d}')">${d === 'all' ? '全部' : d}</button>`;
+  });
+}
+function setDiff(d) { currentDiff = d; buildDiffFilter(); renderProblems(); }
+
+// ═══ Category Filter ═══
+function buildCatFilter() {
+  const cf = document.getElementById("catFilter");
+  const cats = new Set();
+  allProblems.filter(p => p.stage === currentStage).forEach(p => {
+    if (p.category) cats.add(p.category);
+    if (p.tags) p.tags.forEach(t => cats.add(t));
+  });
+  const sorted = ["all", ...Array.from(cats).sort()];
+  cf.innerHTML = sorted.map(c =>
+    `<button class="cat-btn${currentCategory === c ? ' active' : ''}" onclick="setCategory('${c.replace(/'/g, "\\'")}')">${c === 'all' ? '全部分类' : c}</button>`
+  ).join("");
+}
+function setCategory(c) { currentCategory = c; buildCatFilter(); renderProblems(); }
+
+// ═══ Render Problems ═══
+function renderProblems() {
+  const q = (document.getElementById("searchInput").value || "").toLowerCase();
+  let filtered = allProblems.filter(p => p.stage === currentStage);
+  if (currentDiff !== "all") filtered = filtered.filter(p => p.difficulty === currentDiff);
+  if (currentCategory !== "all") filtered = filtered.filter(p =>
+    (p.category && p.category === currentCategory) ||
+    (p.tags && p.tags.some(t => t === currentCategory))
+  );
+  if (q) filtered = filtered.filter(p =>
+    p.title.toLowerCase().includes(q) ||
+    p.tags.some(t => t.toLowerCase().includes(q)) ||
+    (p.description||"").toLowerCase().includes(q)
+  );
+
+  const grid = document.getElementById("problemGrid");
+  const empty = document.getElementById("emptyState");
+  const si = stageInfo.find(s => s.id === currentStage);
+  document.getElementById("sectionTitle").textContent = `阶段 ${currentStage} · ${si.name}`;
+
+  if (filtered.length === 0) { grid.innerHTML = ""; empty.style.display = "block"; return; }
+  empty.style.display = "none";
+
+  const pg = loadProgress();
+  grid.innerHTML = filtered.map(p => {
+    const dc = p.difficulty === "简单" ? "diff-easy" : p.difficulty === "中等" ? "diff-medium" : "diff-hard";
+    const st = pg[p.id] || "unstarted";
+    const sc = st === "ac" ? "status-ac" : st === "read" ? "status-read" : "";
+    const sm = st === "ac" ? '<span class="status-marker ac">&#x2713; AC</span>' : "";
+    const diffIcon = p.difficulty === "简单" ? "&#x1f7e2;" : p.difficulty === "中等" ? "&#x1f7e1;" : "&#x1f534;";
+    return `<div class="problem-card ${sc}" onclick="openProblem(${p.id})">
+      ${sm}
+      <div class="card-header">
+        <span class="card-id">#${String(p.id).padStart(2,"0")}</span>
+        <span class="diff-badge ${dc}">${diffIcon} ${p.difficulty}</span>
+      </div>
+      <div class="card-title">${p.title}</div>
+      <div class="card-meta">
+        <span>&#x231b; ${p.timeComplexity||"?"}</span>
+        <span>&#x1f4be; ${p.spaceComplexity||"?"}</span>
+        ${p.category ? `<span>&#x1f4c2; ${p.category}</span>` : ""}
+      </div>
+      <div class="card-tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+// ═══ Modal ═══
+function openProblem(id) {
+  const p = allProblems.find(p => p.id === id);
+  if (!p) return;
+
+  const st = getStatus(p.id);
+  if (st === "unstarted") setStatus(p.id, "read");
+
+  const dc = p.difficulty === "简单" ? "diff-easy" : p.difficulty === "中等" ? "diff-medium" : "diff-hard";
+  const curStatus = getStatus(p.id);
+  const hasSolution = !!(p.cppCode || p.solution);
+
+  document.getElementById("modal").innerHTML = `
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <span class="diff-badge ${dc}">${p.difficulty}</span>
+        <h2>#${String(p.id).padStart(2,"0")} ${p.title}</h2>
+      </div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+
+    <div class="modal-tabs">
+      <button class="modal-tab-btn active" onclick="switchModalTab('desc')" data-tab="desc">
+        <span class="modal-tab-icon">&#x1f4c4;</span>题目描述
+      </button>
+      ${hasSolution ? `<button class="modal-tab-btn" onclick="switchModalTab('solution')" data-tab="solution">
+        <span class="modal-tab-icon">&#x1f4a1;</span>题解
+      </button>` : ""}
+      <button class="modal-tab-btn" onclick="switchModalTab('submit')" data-tab="submit">
+        <span class="modal-tab-icon">&#x2328;&#xfe0f;</span>在线提交
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Tab: 题目描述 -->
+      <div class="modal-tab-panel active" data-panel="desc">
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">时间复杂度</div><div class="info-value">${p.timeComplexity||"?"}</div></div>
+          <div class="info-item"><div class="info-label">空间复杂度</div><div class="info-value">${p.spaceComplexity||"?"}</div></div>
+          <div class="info-item"><div class="info-label">所属阶段</div><div class="info-value">${p.stageName||"阶段"+p.stage}</div></div>
+          ${p.category ? `<div class="info-item"><div class="info-label">算法分类</div><div class="info-value">${p.category}</div></div>` : ""}
+        </div>
+        <div class="card-tags" style="margin-bottom:18px">${p.tags.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+
+        <div class="modal-section">
+          <h3>&#x1f4dd; 题目描述</h3>
+          <div class="problem-desc">${p.description||""}</div>
+        </div>
+        ${p.inputFormat ? `<div class="modal-section"><h3>&#x2b07;&#xfe0f; 输入格式</h3><div class="problem-desc">${p.inputFormat}</div></div>` : ""}
+        ${p.outputFormat ? `<div class="modal-section"><h3>&#x2b06;&#xfe0f; 输出格式</h3><div class="problem-desc">${p.outputFormat}</div></div>` : ""}
+        <div class="modal-section"><h3>&#x1f4e5; 输入样例</h3><div class="io-block"><pre>${p.sampleInput||""}</pre></div></div>
+        <div class="modal-section"><h3>&#x1f4e4; 输出样例</h3><div class="io-block"><pre>${p.sampleOutput||""}</pre></div></div>
+        ${p.constraints ? `<div class="modal-section"><h3>&#x26a0;&#xfe0f; 约束条件</h3><div class="problem-desc">${p.constraints}</div></div>` : ""}
+
+        <div class="modal-actions">
+          <button class="modal-act-btn read-style" onclick="markStatus(${p.id},'read')">${curStatus==='read'?'&#x2713; 已阅读':'&#x1f516; 标记已阅读'}</button>
+          <button class="modal-act-btn ac-style" onclick="markStatus(${p.id},'ac')">${curStatus==='ac'?'&#x2713; 已 AC':'&#x1f3c6; 标记已 AC'}</button>
+          ${curStatus!=='unstarted' ? `<button class="modal-act-btn" onclick="markStatus(${p.id},'unstarted')">&#x21a9;&#xfe0f; 重置</button>` : ""}
+        </div>
+      </div>
+
+      <!-- Tab: 题解 -->
+      ${hasSolution ? `<div class="modal-tab-panel" data-panel="solution">
+        <button class="solution-toggle" onclick="toggleSolution(this)" aria-expanded="false">
+          <span class="arrow">&#x25b6;</span>查看题解与思路解析
+        </button>
+        <div class="solution-collapse">
+          ${p.cppCode ? `
+          <h3 style="margin-top:14px">C++ 题解</h3>
+          <div class="code-wrapper">
+            <button class="copy-btn" onclick="copyCode(this,'${p.id}')">复制代码</button>
+            <pre><code class="language-cpp">${escHtml(p.cppCode)}</code></pre>
+          </div>` : ""}
+          ${p.solution ? `
+          <h3>思路解析</h3>
+          <div class="explanation">${p.solution}</div>` : ""}
+        </div>
+      </div>` : ""}
+
+      <!-- Tab: 在线提交 -->
+      <div class="modal-tab-panel" data-panel="submit">
+        <div class="judge-section">
+          <h3>&#x2328;&#xfe0f; 代码编辑器</h3>
+          <div class="judge-editor-wrap">
+            <div class="judge-ln" id="judgeLn"></div>
+            <textarea class="judge-editor" id="judgeEditor" placeholder="在此编写 C++ 代码...&#10;或点击下方按钮加载题解代码" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncLineScroll()"></textarea>
+          </div>
+          <div class="judge-toolbar">
+            <button class="judge-submit-btn" onclick="submitCode(${p.id})">&#x25b6; 提交运行</button>
+            <button class="judge-load-btn" onclick="loadSolution(${p.id})">&#x1f4cb; 加载题解</button>
+            <span style="font-size:11px;color:var(--text2);margin-left:auto" id="judgeStatus"></span>
+          </div>
+          <div class="judge-results" id="judgeResults"></div>
+          <div class="ai-panel" id="aiPanel">
+            <div class="ai-panel-section">
+              <h4>&#x1f50d; 诊断</h4>
+              <div class="ai-diagnosis" id="aiDiagnosis"></div>
+              <div class="ai-skills" id="aiSkills"></div>
+            </div>
+            <div class="ai-tip" id="aiTip"></div>
+            <div class="ai-practice-card" id="aiPracticeCard" style="display:none">
+              <h4 id="aiPracticeTitle"></h4>
+              <div class="ai-practice-meta" id="aiPracticeMeta"></div>
+              <div class="ai-practice-desc" id="aiPracticeDesc"></div>
+              <div class="ai-practice-actions">
+                <button class="ai-practice-btn" id="aiPracticeGoBtn" onclick="goToGeneratedProblem()">创建练习题并跳转</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Test -->
+        <div class="custom-test-section">
+          <h3>&#x1f9ea; 自定义测试</h3>
+          <div class="custom-test-grid">
+            <div>
+              <div class="custom-test-label">输入</div>
+              <textarea class="custom-test-textarea" id="customInput" placeholder="输入测试数据...">${(p.sampleInput||'')}</textarea>
+            </div>
+            <div>
+              <div class="custom-test-label">输出</div>
+              <textarea class="custom-test-textarea" id="customOutput" placeholder="运行结果将显示在此" readonly></textarea>
+            </div>
+          </div>
+          <button class="judge-submit-btn" onclick="runCustomTest(${p.id})" style="font-size:12px;padding:6px 14px">&#x25b6; 运行测试</button>
+          <span style="font-size:11px;color:var(--text2);margin-left:8px" id="customStatus"></span>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById("modalOverlay").classList.add("open");
+  document.getElementById("modalOverlay").scrollTop = 0;
+
+  // Highlight code blocks
+  requestAnimationFrame(() => {
+    document.querySelectorAll("#modal pre code").forEach(b => hljs.highlightElement(b));
+  });
+  // Initialize line numbers for the code editor (empty, shows just "1")
+  setTimeout(() => updateLineNumbers(), 50);
+}
+
+// ═══ Modal Tabs ═══
+function switchModalTab(tabName) {
+  document.querySelectorAll(".modal-tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelector(`.modal-tab-btn[data-tab="${tabName}"]`)?.classList.add("active");
+  document.querySelectorAll(".modal-tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelector(`.modal-tab-panel[data-panel="${tabName}"]`)?.classList.add("active");
+
+  // Highlight code when switching to solution tab
+  if (tabName === "solution") {
+    requestAnimationFrame(() => {
+      document.querySelectorAll(".modal-tab-panel[data-panel='solution'] pre code").forEach(b => hljs.highlightElement(b));
+    });
+  }
+  // Update line numbers when switching to submit tab
+  if (tabName === "submit") {
+    setTimeout(() => updateLineNumbers(), 50);
+  }
+}
+
+function closeModal() { document.getElementById("modalOverlay").classList.remove("open"); }
+function handleOverlayClick(e) { if (e.target === document.getElementById("modalOverlay")) closeModal(); }
+function markStatus(id, s) { setStatus(id, s); }
+
+function toggleSolution(btn) {
+  const collapse = btn.nextElementSibling;
+  const isOpen = collapse.classList.contains("expanded");
+  if (isOpen) {
+    collapse.classList.remove("expanded");
+    btn.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+    btn.querySelector(".arrow").innerHTML = "&#x25b6;";
+    btn.innerHTML = btn.innerHTML.replace("隐藏", "查看").replace("查看题解与思路解析", "查看题解与思路解析");
+  } else {
+    collapse.classList.add("expanded");
+    btn.classList.add("open");
+    btn.setAttribute("aria-expanded", "true");
+    btn.querySelector(".arrow").innerHTML = "&#x25bc;";
+    btn.innerHTML = btn.innerHTML.replace("查看", "隐藏").replace("隐藏题解与思路解析", "隐藏题解与思路解析");
+  }
+}
+
+// ═══ Line Numbers ═══
+function updateLineNumbers() {
+  const editor = document.getElementById("judgeEditor");
+  const ln = document.getElementById("judgeLn");
+  if (!editor || !ln) return;
+  const lines = editor.value.split("\n").length;
+  let nums = "";
+  for (let i = 1; i <= Math.max(lines, 1); i++) nums += i + "\n";
+  ln.textContent = nums;
+}
+function syncLineScroll() {
+  const editor = document.getElementById("judgeEditor");
+  const ln = document.getElementById("judgeLn");
+  if (!editor || !ln) return;
+  ln.scrollTop = editor.scrollTop;
+}
+
+function loadSolution(pid) {
+  const p = allProblems.find(p => p.id === pid);
+  const editor = document.getElementById("judgeEditor");
+  if (p && p.cppCode && editor) {
+    editor.value = p.cppCode;
+    updateLineNumbers();
+  }
+}
+
+// ═══ Judge ═══
+async function submitCode(problemId) {
+  const code = document.getElementById("judgeEditor").value.trim();
+  if (!code) { alert("请先编写代码"); return; }
+
+  const btn = document.querySelector(".judge-submit-btn");
+  const status = document.getElementById("judgeStatus");
+  const results = document.getElementById("judgeResults");
+  btn.disabled = true;
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = '<span class="ai-loading-spinner" style="width:14px;height:14px;border-width:1.5px"></span>判题中...';
+  status.textContent = "";
+  results.classList.remove("show");
+  results.innerHTML = "";
+
+  try {
+    const resp = await fetch(JUDGE_URL + "/api/judge", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({code, problem_id: problemId})
+    });
+    const data = await resp.json();
+    renderJudgeResults(data, problemId);
+  } catch (e) {
+    status.textContent = "无法连接判题服务器 (127.0.0.1:8765)";
+    results.innerHTML = `<div class="verdict-bar unknown"><span class="verdict-icon">&#x26a0;</span>服务器未启动，请运行: python3 judge_server.py</div>`;
+    results.classList.add("show");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origHtml;
+  }
+}
+
+function renderJudgeResults(data, problemId) {
+  const results = document.getElementById("judgeResults");
+  const v = data.verdict || "UNKNOWN";
+  const cls = v.toLowerCase();
+
+  const icons = {ac:"&#x2705;", wa:"&#x274c;", tle:"&#x23f0;", mle:"&#x1f4be;", ce:"&#x26a0;", re:"&#x1f6a8;", unknown:"?"};
+  const verdictLabel = data.verdict_label || v;
+
+  let html = `<div class="verdict-bar ${cls}"><span class="verdict-icon">${icons[cls]||"?"}</span> ${verdictLabel}`;
+  if (data.passed !== undefined) html += ` <span class="verdict-meta">${data.passed}/${data.total} 通过</span>`;
+  html += `</div>`;
+
+  if (v === "CE" && data.compile_error) {
+    html += `<div class="ce-block">${escHtml(data.compile_error)}</div>`;
+  }
+
+  if (data.results && data.results.length > 0) {
+    html += `<div class="verdict-details">`;
+    data.results.forEach(r => {
+      const rc = r.verdict.toLowerCase();
+      const isSample = r.is_sample !== false;
+      const label = isSample ? `样例 ${r.case_index}` : `隐藏 ${r.case_index}`;
+      const lock = isSample ? '' : ' <span class="hidden-badge">隐藏</span>';
+      html += `<div class="verdict-row ${isSample ? '' : 'hidden-row'}"><span class="v-dot ${rc}"></span><span class="v-label">${label}: ${r.verdict_label}${lock}</span><span class="v-time">${r.time_ms}ms</span></div>`;
+      if (isSample) {
+        if (r.verdict === "WA" && r.input) {
+          html += `<div class="diff-block">
+            <div class="d-label">输入</div><pre>${escHtml(r.input)}</pre>
+            <div class="d-label">期望输出</div><pre class="expected">${escHtml(r.expected)}</pre>
+            <div class="d-label">实际输出</div><pre class="actual">${escHtml(r.actual)}</pre>
+          </div>`;
+        }
+        if ((r.verdict === "RE" || r.verdict === "TLE") && r.stderr) {
+          html += `<div class="diff-block"><div class="d-label">错误信息</div><pre>${escHtml(r.stderr)}</pre></div>`;
+        }
+      } else {
+        if (r.verdict === "WA") {
+          html += `<div class="diff-block hidden-hint"><div class="d-label">提示</div><pre>隐藏测试用例未通过，请检查代码逻辑是否覆盖所有边界情况</pre></div>`;
+        }
+      }
+    });
+    html += `</div>`;
+  }
+
+  results.innerHTML = html;
+  results.classList.add("show");
+
+  if (v !== "AC") {
+    const btnLabels = {"WA":"分析错误原因","TLE":"分析超时原因","MLE":"分析内存超限","CE":"分析编译错误","RE":"分析运行错误"};
+    const label = btnLabels[v] || "AI 智能分析";
+    if (acctMember) {
+      results.insertAdjacentHTML("beforeend", `<button class="ai-analyze-btn" id="aiAnalyzeBtn" onclick="requestAiAnalysis(${problemId},'${v}','${(data.verdict_label||'').replace(/'/g,"\\'")}')">${label}</button>`);
+    } else if (acctLoggedIn) {
+      results.insertAdjacentHTML("beforeend", `<button class="ai-analyze-btn ai-analyze-locked" id="aiAnalyzeBtn" onclick="showMembershipModal()">开通会员解锁 AI 分析</button>`);
+    } else {
+      results.insertAdjacentHTML("beforeend", `<button class="ai-analyze-btn ai-analyze-locked" id="aiAnalyzeBtn" onclick="showAuthModal()">登录后使用 AI 分析</button>`);
+    }
+  }
+
+  if (v === "AC" && data.passed === data.total) {
+    setStatus(problemId, "ac");
+    document.getElementById("judgeStatus").textContent = "已自动标记为通过";
+  }
+}
+
+async function runCustomTest(problemId) {
+  const code = document.getElementById("judgeEditor").value.trim();
+  const input = document.getElementById("customInput").value;
+  if (!code) { alert("请先在代码编辑器中编写代码"); return; }
+
+  const status = document.getElementById("customStatus");
+  const output = document.getElementById("customOutput");
+  status.textContent = "运行中...";
+  output.value = "";
+
+  try {
+    const resp = await fetch(JUDGE_URL + "/api/run", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({code, input})
+    });
+    const data = await resp.json();
+
+    if (data.verdict === "CE") {
+      output.value = "[编译错误]\n" + data.compile_error;
+      status.textContent = "编译错误";
+    } else if (data.verdict === "TLE") {
+      output.value = "[运行超时]\n" + (data.stderr || "");
+      status.textContent = `超时 (${data.time_ms}ms)`;
+    } else if (data.verdict === "RE") {
+      output.value = "[运行错误]\n" + (data.stderr || "");
+      status.textContent = "运行错误";
+    } else {
+      output.value = data.stdout || "";
+      status.textContent = `完成 (${data.time_ms}ms)`;
+    }
+  } catch (e) {
+    status.textContent = "无法连接判题服务器";
+    output.value = "服务器未启动，请运行: python3 judge_server.py";
+  }
+}
+
+// ═══ AI Analysis ═══
+let _lastAnalysisData = null;
+
+async function requestAiAnalysis(problemId, verdict, verdictLabel) {
+  if (!acctLoggedIn) { showAuthModal(); return; }
+  if (!acctMember) { showMembershipModal(); return; }
+  const code = document.getElementById("judgeEditor").value.trim();
+  const resultsEl = document.getElementById("judgeResults");
+  const panel = document.getElementById("aiPanel");
+  const btn = document.getElementById("aiAnalyzeBtn");
+
+  if (!code) { alert("请先编写代码"); return; }
+
+  btn.disabled = true;
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = '<span class="ai-loading-spinner"></span>AI 分析中...';
+  panel.classList.add("show");
+  panel.innerHTML = '<div class="ai-loading"><span class="ai-loading-spinner"></span>正在分析你的代码，请稍候...</div>';
+
+  const verdictRows = resultsEl.querySelectorAll(".verdict-row");
+  const results = [];
+  verdictRows.forEach(row => {
+    const label = row.querySelector(".v-label");
+    const time = row.querySelector(".v-time");
+    if (label) {
+      const verdictMatch = label.textContent.match(/(AC|WA|TLE|MLE|RE|CE)/);
+      results.push({
+        case_index: results.length + 1,
+        verdict: verdictMatch ? verdictMatch[1] : "UNKNOWN",
+        time_ms: time ? time.textContent : "",
+      });
+    }
+  });
+
+  try {
+    const headers = {"Content-Type": "application/json"};
+    if (acctToken) headers["Authorization"] = "Bearer " + acctToken;
+    const resp = await fetch(JUDGE_URL + "/api/ai-analyze", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({code, problem_id: problemId, verdict, verdict_label: verdictLabel, results})
+    });
+    if (resp.status === 401) {
+      panel.innerHTML = `<div class="ai-panel-section"><h4>需要登录</h4><div class="ai-diagnosis">AI 分析功能仅限登录用户使用。<br><button class="auth-submit" style="margin-top:12px;width:auto;padding:8px 20px" onclick="showAuthModal()">立即登录</button></div></div>`;
+      return;
+    }
+    if (resp.status === 402) {
+      panel.innerHTML = `<div class="ai-panel-section"><h4>需要会员</h4><div class="ai-diagnosis">AI 分析功能需要开通会员才能使用。<br><button class="auth-submit" style="margin-top:12px;width:auto;padding:8px 20px;background:linear-gradient(135deg,#f59e0b,#eab308)" onclick="showMembershipModal()">开通会员</button></div></div>`;
+      return;
+    }
+    const data = await resp.json();
+    renderAnalysis(data);
+  } catch (e) {
+    panel.innerHTML = `<div class="ai-panel-section"><h4>&#x26a0; 错误</h4><div class="ai-diagnosis">AI 分析服务不可用: ${escHtml(e.message)}</div></div>`;
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+}
+
+function renderAnalysis(data) {
+  const panel = document.getElementById("aiPanel");
+  panel.classList.add("show");
+
+  if (!data.success) {
+    panel.innerHTML = `<div class="ai-panel-section"><h4>&#x26a0; 错误</h4><div class="ai-diagnosis">${escHtml(data.error || '未知错误')}<br><small>请确保 judge_server.py 已设置 DEEPSEEK_API_KEY 后重启</small></div></div>`;
+    return;
+  }
+
+  let html = '';
+
+  if (data.analysis) {
+    html += `<div class="ai-panel-section"><h4>&#x1f50d; 诊断</h4><div class="ai-diagnosis">${escHtml(data.analysis)}</div>`;
+    if (data.missing_skills && data.missing_skills.length > 0) {
+      html += `<div class="ai-skills">${data.missing_skills.map(s => `<span class="ai-skill-tag">${escHtml(s)}</span>`).join("")}</div>`;
+    }
+    html += `</div>`;
+  }
+
+  if (data.learning_tip) {
+    html += `<div class="ai-tip">${escHtml(data.learning_tip)}</div>`;
+  }
+
+  if (data.practice && data.practice.title) {
+    const p = data.practice;
+    _lastAnalysisData = data;
+    html += `<div class="ai-practice-card">`;
+    html += `<h4>${escHtml(p.title)}</h4>`;
+    html += `<div class="ai-practice-meta"><span>难度: ${escHtml(p.difficulty||'中等')}</span>`;
+    if (p.tags) html += `<span>标签: ${escHtml(p.tags.join(', '))}</span>`;
+    if (p.timeComplexity) html += `<span>${escHtml(p.timeComplexity)}</span>`;
+    html += `</div>`;
+    if (p.description) html += `<div class="ai-practice-desc">${escHtml(p.description.substring(0,300))}</div>`;
+    if (p.hint) html += `<div class="ai-tip">提示: ${escHtml(p.hint)}</div>`;
+    html += `<div class="ai-practice-actions">`;
+    html += `<button class="ai-practice-btn" onclick="goToGeneratedProblem()">创建练习题并跳转</button>`;
+    html += `</div></div>`;
+  } else if (data.existing_problem_id) {
+    _lastAnalysisData = data;
+    html += `<div class="ai-practice-card">`;
+    html += `<h4>已有相似题目 #${data.existing_problem_id}</h4>`;
+    html += `<div class="ai-practice-desc">题库中已有匹配的练习题，点击下方按钮直接跳转到该题目进行训练。</div>`;
+    html += `<div class="ai-practice-actions">`;
+    html += `<button class="ai-practice-btn" onclick="goToGeneratedProblem()">跳转到已有题目</button>`;
+    html += `</div></div>`;
+  }
+
+  panel.innerHTML = html;
+}
+
+async function goToGeneratedProblem() {
+  if (!_lastAnalysisData || !_lastAnalysisData.practice) {
+    if (_lastAnalysisData && _lastAnalysisData.existing_problem_id) {
+      closeModal();
+      setTimeout(() => openProblem(_lastAnalysisData.existing_problem_id), 200);
+    }
+    return;
+  }
+
+  const btn = document.getElementById("aiPracticeGoBtn");
+  const origText = btn ? btn.textContent : "";
+  if (btn) { btn.disabled = true; btn.textContent = "保存中..."; }
+
+  try {
+    const resp = await fetch(JUDGE_URL + "/api/save-generated-problem", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({problem: _lastAnalysisData.practice})
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      if (data.duplicate) {
+        alert(data.message || "题库中已有相似题目");
+        closeModal();
+        setTimeout(() => openProblem(data.problem_id), 200);
+        return;
+      }
+
+      const existingIds = new Set(allProblems.map(p => p.id));
+      if (!existingIds.has(data.problem_id)) {
+        allProblems.push(data.problem);
+        const si = stageInfo.find(s => s.id === data.problem.stage);
+        if (si) {
+          si.count++;
+        } else {
+          stageInfo.push({id: data.problem.stage, name: data.problem.stageName || '综合练习', count: 1});
+          stageInfo.sort((a,b) => a.id - b.id);
+        }
+      }
+      updateAllUI();
+      closeModal();
+      setTimeout(() => openProblem(data.problem_id), 200);
+    } else {
+      alert("保存失败: " + (data.error || "未知错误"));
+    }
+  } catch (e) {
+    alert("保存失败: " + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = origText; }
+  }
+}
+
+async function loadGeneratedProblems() {
+  try {
+    const resp = await fetch(JUDGE_URL + "/api/generated-problems");
+    if (!resp.ok) return;
+    const genProbs = await resp.json();
+    if (!genProbs || genProbs.length === 0) return;
+
+    const existingIds = new Set(allProblems.map(p => p.id));
+    genProbs.forEach(gp => {
+      if (!existingIds.has(gp.id)) {
+        allProblems.push(gp);
+        const si = stageInfo.find(s => s.id === gp.stage);
+        if (si) {
+          si.count++;
+        } else if (gp.stage) {
+          stageInfo.push({id: gp.stage, name: gp.stageName || '综合练习', count: 1});
+          stageInfo.sort((a,b) => a.id - b.id);
+        }
+      }
+    });
+    updateAllUI();
+  } catch(e) { /* ignore */ }
+}
+
+// ═══ Copy ═══
+function copyCode(btn, pid) {
+  const p = allProblems.find(p => String(p.id) === pid);
+  if (!p || !p.cppCode) return;
+  navigator.clipboard.writeText(p.cppCode).then(() => {
+    btn.textContent = "已复制!"; btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "复制代码"; btn.classList.remove("copied"); }, 1500);
+  }).catch(() => {
+    const ta = document.createElement("textarea"); ta.value = p.cppCode;
+    document.body.appendChild(ta); ta.select(); document.execCommand("copy");
+    document.body.removeChild(ta);
+    btn.textContent = "已复制!"; btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "复制代码"; btn.classList.remove("copied"); }, 1500);
+  });
+}
+
+// ═══ Helpers ═══
+function escHtml(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// ═══ Stage Switch ═══
+function switchStage(sid) {
+  currentStage = sid;
+  document.getElementById("searchInput").value = "";
+  currentDiff = "all";
+  currentCategory = "all";
+  buildDiffFilter();
+  buildCatFilter();
+  buildStageNav();
+  drawMap();
+  renderProblems();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ═══ Update All ═══
+function updateAllUI() {
+  const tp = totalProgress();
+  document.getElementById("navProgress").textContent = `${tp.ac}/${tp.total} 通过`;
+  document.getElementById("congratsBanner").style.display = (tp.ac === tp.total && tp.total > 0) ? "block" : "none";
+  buildStageNav();
+  buildStats();
+  buildCatFilter();
+  drawMap();
+  renderProblems();
+}
+
+// Keyboard
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+  if (e.ctrlKey && e.key === "Enter") { const btn = document.querySelector(".judge-submit-btn"); if (btn && !btn.disabled) btn.click(); }
+});
+
+// ═══ Init ═══
+(async function init() {
+  // Try to restore session from saved token
+  if (acctToken) {
+    const ok = await loadUserFromServer();
+    if (ok) await syncProgressFromServer();
+  }
+  buildDiffFilter();
+  buildCatFilter();
+  buildStageNav();
+  buildStats();
+  drawMap();
+  renderProblems();
+  updateAllUI();
+  loadGeneratedProblems();
+})();
+</script>
+<!-- Membership Modal -->
+<div class="member-modal-overlay" id="memberModalOverlay" onclick="closeMembershipModal(event)">
+  <div class="member-modal" onclick="event.stopPropagation()" style="position:relative">
+    <button class="member-modal-close" onclick="closeMembershipModal()">&times;</button>
+    <h2 style="font-size:20px;margin-bottom:4px">开通会员</h2>
+    <p class="member-info">解锁 AI 智能分析功能，获得专属学习指导</p>
+    <div class="member-plans" id="memberPlans"></div>
+    <button class="member-btn" id="memberPayBtn" onclick="createMembershipOrder()" disabled>请选择套餐</button>
+    <div class="member-info" id="memberPayMsg"></div>
+  </div>
+</div>
+
+</body>
+</html>
