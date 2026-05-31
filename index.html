@@ -1578,9 +1578,9 @@ async function goToGeneratedProblem() {
   if (btn) { btn.disabled = true; btn.textContent = "保存中..."; }
 
   try {
-    const resp = await fetch(JUDGE_URL + "/save-generated-problem", {
+    const resp = await fetch(AUTH_URL + "/api/generated-problems/save", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: {"Content-Type": "application/json", "Authorization": "Bearer " + (acctToken || "")},
       body: JSON.stringify({problem: _lastAnalysisData.practice})
     });
     const data = await resp.json();
@@ -1619,7 +1619,7 @@ async function goToGeneratedProblem() {
 
 async function loadGeneratedProblems() {
   try {
-    const resp = await fetch(JUDGE_URL + "/generated-problems");
+    const resp = await fetch(AUTH_URL + "/api/generated-problems/list");
     if (!resp.ok) return;
     const genProbs = await resp.json();
     if (!genProbs || genProbs.length === 0) return;

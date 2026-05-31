@@ -6,8 +6,8 @@ import { addCORS } from '../../_utils/cors.js';
 const EPAY_PID = '11898';
 const EPAY_KEY = 'a3NcrTlnT1anCcQGyAWb';
 const EPAY_SUBMIT_URL = 'https://epay.fuqiangla.com/submit.php';
-const NOTIFY_URL = typeof SITE_URL !== 'undefined' ? SITE_URL + '/api/epay/notify' : 'http://82.156.34.78/api/epay/notify';
-const RETURN_URL = typeof SITE_URL !== 'undefined' ? SITE_URL : 'http://82.156.34.78';
+const NOTIFY_URL = 'https://cpp-practice.pages.dev/api/epay/notify';
+const RETURN_URL = 'https://cpp-practice.pages.dev';
 
 const PLAN_MAP = {
   week: { name: '7天体验会员', price: '10.00', days: 7 },
