@@ -651,7 +651,7 @@ document.addEventListener("click", () => {
 });
 
 // ═══ Auth Modal ═══
-let authMode = "login";
+var authMode = "login";
 
 function showAuthModal(mode) {
   authMode = mode;
@@ -779,7 +779,7 @@ async function handleLogout() {
 }
 
 // ═══ Membership ═══
-let _selectedPlan = null;
+var _selectedPlan = null;
 
 async function showMembershipModal() {
   document.getElementById("acctDropdown").classList.remove("show");
