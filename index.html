@@ -1529,41 +1529,36 @@ function renderAnalysis(data) {
   }
 
   let html = '';
+  const a = data.analysis;
 
-  if (data.analysis) {
-    html += `<div class="ai-panel-section"><h4>&#x1f50d; 诊断</h4><div class="ai-diagnosis">${escHtml(data.analysis)}</div>`;
-    if (data.missing_skills && data.missing_skills.length > 0) {
-      html += `<div class="ai-skills">${data.missing_skills.map(s => `<span class="ai-skill-tag">${escHtml(s)}</span>`).join("")}</div>`;
+  if (a) {
+    html += `<div class="ai-panel-section"><h4>&#x1f50d; 诊断</h4><div class="ai-diagnosis">${escHtml(a.diagnosis || '')}</div>`;
+    html += `<div class="ai-diagnosis" style="margin-top:8px;color:var(--text2)">${escHtml(a.explanation || '')}</div>`;
+    if (a.skills && a.skills.length > 0) {
+      html += `<div class="ai-skills">${a.skills.map(s => `<span class="ai-skill-tag">${escHtml(s)}</span>`).join("")}</div>`;
     }
     html += `</div>`;
   }
 
-  if (data.learning_tip) {
-    html += `<div class="ai-tip">${escHtml(data.learning_tip)}</div>`;
+  if (a && a.tip) {
+    html += `<div class="ai-tip">${escHtml(a.tip)}</div>`;
   }
 
-  if (data.practice && data.practice.title) {
-    const p = data.practice;
-    _lastAnalysisData = data;
+  if (a && a.practice && a.practice.title) {
+    const p = a.practice;
+    _lastAnalysisData = a;
     html += `<div class="ai-practice-card">`;
     html += `<h4>${escHtml(p.title)}</h4>`;
     html += `<div class="ai-practice-meta"><span>难度: ${escHtml(p.difficulty||'中等')}</span>`;
     if (p.tags) html += `<span>标签: ${escHtml(p.tags.join(', '))}</span>`;
-    if (p.timeComplexity) html += `<span>${escHtml(p.timeComplexity)}</span>`;
     html += `</div>`;
     if (p.description) html += `<div class="ai-practice-desc">${escHtml(p.description.substring(0,300))}</div>`;
-    if (p.hint) html += `<div class="ai-tip">提示: ${escHtml(p.hint)}</div>`;
+    if (p.solution_hint) html += `<div class="ai-tip">提示: ${escHtml(p.solution_hint)}</div>`;
     html += `<div class="ai-practice-actions">`;
     html += `<button class="ai-practice-btn" onclick="goToGeneratedProblem()">创建练习题并跳转</button>`;
     html += `</div></div>`;
-  } else if (data.existing_problem_id) {
-    _lastAnalysisData = data;
-    html += `<div class="ai-practice-card">`;
-    html += `<h4>已有相似题目 #${data.existing_problem_id}</h4>`;
-    html += `<div class="ai-practice-desc">题库中已有匹配的练习题，点击下方按钮直接跳转到该题目进行训练。</div>`;
-    html += `<div class="ai-practice-actions">`;
-    html += `<button class="ai-practice-btn" onclick="goToGeneratedProblem()">跳转到已有题目</button>`;
-    html += `</div></div>`;
+  } else if (a && a.practice) {
+    _lastAnalysisData = a;
   }
 
   panel.innerHTML = html;
