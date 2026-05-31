@@ -1,6 +1,6 @@
 // Admin Users API — GET list users, PUT set role
-import { requireAdmin } from '../_utils/admin.js';
-import { listUsers, setUserRole } from '../_utils/db.js';
+import { requireAdmin } from '../../_utils/admin.js';
+import { listUsers, setUserRole } from '../../_utils/db.js';
 
 function ok(data) { return Response.json(data); }
 function err(msg, status = 400) { return Response.json({ error: msg }, { status }); }

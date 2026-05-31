@@ -1,6 +1,6 @@
 // Admin Contest API — GET list all, POST create, PUT update, DELETE remove
-import { requireAdmin } from '../_utils/admin.js';
-import { listContests, getContest, createContest, updateContest, deleteContest } from '../_utils/db.js';
+import { requireAdmin } from '../../_utils/admin.js';
+import { listContests, getContest, createContest, updateContest, deleteContest } from '../../_utils/db.js';
 
 function ok(data) { return Response.json(data); }
 function err(msg, status = 400) { return Response.json({ error: msg }, { status }); }
