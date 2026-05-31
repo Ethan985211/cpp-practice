@@ -3,6 +3,8 @@ import { verify } from '../../_utils/jwt.js';
 import { getDB, initDB, createProblem } from '../../_utils/db.js';
 import { addCORS } from '../../_utils/cors.js';
 
+const CVM_JUDGE_URL = 'http://82.156.34.78/api/add-test-cases';
+
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
   await initDB(db);
@@ -23,9 +25,11 @@ export async function onRequestPost({ env, request }) {
     return addCORS(Response.json({ error: '缺少题目信息' }, { status: 400 }), request);
   }
 
-  // Map AI practice fields to D1 problem fields
+  // Detect difficulty format
   const difficultyMap = { easy: 1, medium: 2, hard: 3 };
-  const difficulty = difficultyMap[practice.difficulty] || 2;
+  const difficulty = difficultyMap[practice.difficulty] || 
+    (practice.difficulty === '简单' ? 1 : practice.difficulty === '中等' ? 2 : practice.difficulty === '困难' ? 3 : 2);
+  const difficultyLabel = ['', '简单', '中等', '困难'][difficulty];
   const category = (practice.tags || []).join(',') || 'general';
   const description = practice.description || '';
   const hint = practice.solution_hint || '';
@@ -41,35 +45,65 @@ export async function onRequestPost({ env, request }) {
     }), request);
   }
 
+  // Normalize test cases
+  const testCases = (practice.test_cases || []).map(tc => ({
+    input: String(tc.input || ''),
+    expected: String(tc.expected || ''),
+    type: 'hidden'
+  }));
+
   const newId = await createProblem(db, {
     title: practice.title,
     difficulty,
     category,
     description,
-    input_desc: '',
-    output_desc: '',
-    sample_input: '',
-    sample_output: '',
+    input_desc: practice.input_desc || '',
+    output_desc: practice.output_desc || '',
+    sample_input: practice.sample_input || '',
+    sample_output: practice.sample_output || '',
     hint,
     solution_code: '',
     solution_text: hint,
-    test_cases: []
+    test_cases: testCases
   }, 'ai-' + payload.username);
 
-  // Return problem in format frontend expects
+  // Build complete problem object for frontend
   const problem = {
     id: newId,
     title: practice.title,
-    difficulty,
-    difficultyLabel: ['', '简单', '中等', '困难'][difficulty],
-    category,
-    description,
-    hint,
+    difficulty: difficultyLabel,
     stage: 8,
     stageName: 'AI生成练习',
+    prerequisites: [],
+    timeComplexity: '?',
+    spaceComplexity: '?',
+    category,
     tags: practice.tags || [],
-    solution_hint: hint
+    description,
+    inputFormat: practice.input_desc || '',
+    outputFormat: practice.output_desc || '',
+    sampleInput: practice.sample_input || '',
+    sampleOutput: practice.sample_output || '',
+    constraints: practice.constraints || '',
+    cppCode: '',
+    solution: hint,
+    solution_hint: hint,
+    testCasesCount: testCases.length
   };
+
+  // Forward test cases to CVM judge server (fire-and-forget)
+  if (testCases.length > 0) {
+    try {
+      await fetch(CVM_JUDGE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problem_id: newId, test_cases: testCases })
+      });
+    } catch (e) {
+      // Non-critical: CVM might be unreachable from CF Pages
+      console.log('CVM test cases sync failed:', e.message);
+    }
+  }
 
   return addCORS(Response.json({
     success: true,

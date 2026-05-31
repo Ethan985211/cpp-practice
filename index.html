@@ -1573,7 +1573,8 @@ async function goToGeneratedProblem() {
     return;
   }
 
-  const btn = document.getElementById("aiPracticeGoBtn");
+  // Find the button that triggered this (could be either .ai-practice-btn or #aiPracticeGoBtn)
+  const btn = document.querySelector(".ai-practice-btn") || document.getElementById("aiPracticeGoBtn");
   const origText = btn ? btn.textContent : "";
   if (btn) { btn.disabled = true; btn.textContent = "保存中..."; }
 
@@ -1587,20 +1588,49 @@ async function goToGeneratedProblem() {
 
     if (data.success) {
       if (data.duplicate) {
-        alert(data.message || "题库中已有相似题目");
+        // Forward test cases to CVM if available and problem exists
+        const tc = _lastAnalysisData.practice.test_cases;
+        if (tc && tc.length >= 5 && JUDGE_URL) {
+          try {
+            await fetch(JUDGE_URL + "/api/add-test-cases", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({problem_id: data.problem_id, test_cases: tc.map(c => ({input:String(c.input||""),expected:String(c.expected||""),type:"hidden"}))})
+            });
+          } catch(e) { /* non-critical */ }
+        }
         closeModal();
         setTimeout(() => openProblem(data.problem_id), 200);
         return;
       }
 
+      // Forward test cases to CVM judge server
+      const tc = _lastAnalysisData.practice.test_cases;
+      if (tc && tc.length >= 5 && JUDGE_URL) {
+        try {
+          await fetch(JUDGE_URL + "/api/add-test-cases", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({problem_id: data.problem_id, test_cases: tc.map(c => ({input:String(c.input||""),expected:String(c.expected||""),type:"hidden"}))})
+          });
+        } catch(e) { /* non-critical - CVM may be unreachable from CF Pages */ }
+      }
+
       const existingIds = new Set(allProblems.map(p => p.id));
       if (!existingIds.has(data.problem_id) && data.problem) {
-        allProblems.push(data.problem);
-        const si = stageInfo.find(s => s.id === data.problem.stage);
+        // Ensure problem has all required fields for openProblem
+        const p = data.problem;
+        if (!p.inputFormat && _lastAnalysisData.practice.input_desc) p.inputFormat = _lastAnalysisData.practice.input_desc;
+        if (!p.outputFormat && _lastAnalysisData.practice.output_desc) p.outputFormat = _lastAnalysisData.practice.output_desc;
+        if (!p.sampleInput && _lastAnalysisData.practice.sample_input) p.sampleInput = _lastAnalysisData.practice.sample_input;
+        if (!p.sampleOutput && _lastAnalysisData.practice.sample_output) p.sampleOutput = _lastAnalysisData.practice.sample_output;
+        if (!p.constraints && _lastAnalysisData.practice.constraints) p.constraints = _lastAnalysisData.practice.constraints;
+        allProblems.push(p);
+        const si = stageInfo.find(s => s.id === p.stage);
         if (si) {
           si.count++;
         } else {
-          stageInfo.push({id: data.problem.stage, name: data.problem.stageName || '综合练习', count: 1});
+          stageInfo.push({id: p.stage, name: p.stageName || '综合练习', count: 1});
           stageInfo.sort((a,b) => a.id - b.id);
         }
       }
