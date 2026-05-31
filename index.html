@@ -350,6 +350,12 @@ footer{text-align:center;padding:28px;color:var(--text3);font-size:12px;border-t
 .member-plan-price{font-size:24px;font-weight:700;color:var(--accent)}
 .member-plan-price small{font-size:12px;font-weight:400;color:var(--text2)}
 .member-plan-days{font-size:12px;color:var(--text2);margin-top:4px}
+/* Payment method toggle */
+.pay-method-toggle{display:flex;gap:0;margin:20px 0 16px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.pay-method-btn{flex:1;padding:12px 16px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;background:var(--surface2);color:var(--text2);border:none;transition:all .2s;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px}
+.pay-method-btn:hover{background:var(--surface3)}
+.pay-method-btn.active{background:var(--accent);color:#fff}
+.pay-method-icon{font-size:18px}
 .member-btn{display:block;width:100%;padding:12px;margin-top:16px;background:linear-gradient(135deg,var(--accent),#6366f1);color:#fff;border:0;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
 .member-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(99,102,241,.3)}
 .member-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
@@ -836,6 +842,12 @@ async function handleLogout() {
 
 // ═══ Membership ═══
 var _selectedPlan = null;
+var _payMethod = "alipay";
+
+function selectPayMethod(type) {
+  _payMethod = type;
+  document.querySelectorAll(".pay-method-btn").forEach(b => b.classList.toggle("active", b.dataset.payType === type));
+}
 
 async function showMembershipModal() {
   document.getElementById("acctDropdown").classList.remove("show");
@@ -891,7 +903,7 @@ async function createMembershipOrder() {
     const resp = await fetch(AUTH_URL + "/api/membership/create-order", {
       method: "POST",
       headers: {"Content-Type":"application/json","Authorization":"Bearer "+acctToken},
-      body: JSON.stringify({plan:_selectedPlan})
+      body: JSON.stringify({plan:_selectedPlan, type:_payMethod})
     });
     const data = await resp.json();
     if (data.success && data.pay_url) {
@@ -2074,6 +2086,14 @@ async function adminPromoteUser(username, role) {
     <h2 style="font-size:20px;margin-bottom:4px">开通会员</h2>
     <p class="member-info">解锁 AI 智能分析功能，获得专属学习指导</p>
     <div class="member-plans" id="memberPlans"></div>
+    <div class="pay-method-toggle" id="payMethodToggle">
+      <button class="pay-method-btn active" data-pay-type="alipay" onclick="selectPayMethod('alipay')">
+        <span class="pay-method-icon">&#x1f4b3;</span>支付宝
+      </button>
+      <button class="pay-method-btn" data-pay-type="wxpay" onclick="selectPayMethod('wxpay')">
+        <span class="pay-method-icon">&#x1f4f1;</span>微信
+      </button>
+    </div>
     <button class="member-btn" id="memberPayBtn" onclick="createMembershipOrder()" disabled>请选择套餐</button>
     <div class="member-info" id="memberPayMsg"></div>
   </div>

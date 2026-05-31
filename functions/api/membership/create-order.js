@@ -155,7 +155,8 @@ export async function onRequestPost({ env, request }) {
 
   let body;
   try { body = await request.json(); } catch { return Response.json({ error: '无效请求' }, { status: 400 }); }
-  const { plan_id } = body;
+  const { plan_id, type } = body;
+  const payType = (type === 'wxpay') ? 'wxpay' : 'alipay';
 
   const plan = PLAN_MAP[plan_id];
   if (!plan) return Response.json({ error: '无效的套餐' }, { status: 400 });
@@ -166,7 +167,7 @@ export async function onRequestPost({ env, request }) {
   // Build epay sign
   const params = {
     pid: EPAY_PID,
-    type: 'alipay',
+    type: payType,
     out_trade_no: outTradeNo,
     notify_url: NOTIFY_URL,
     return_url: RETURN_URL,
