@@ -1594,7 +1594,7 @@ async function goToGeneratedProblem() {
       }
 
       const existingIds = new Set(allProblems.map(p => p.id));
-      if (!existingIds.has(data.problem_id)) {
+      if (!existingIds.has(data.problem_id) && data.problem) {
         allProblems.push(data.problem);
         const si = stageInfo.find(s => s.id === data.problem.stage);
         if (si) {
