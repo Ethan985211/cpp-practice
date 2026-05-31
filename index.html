@@ -914,10 +914,8 @@ async function createMembershipOrder() {
     const data = await resp.json();
     if (data.success && data.pay_url) {
       msg.innerHTML = `<span style="color:var(--green)">订单已创建，正在跳转支付...</span>`;
-      // Open payment page in new window
-      window.open(data.pay_url, "_blank");
-      // Start polling for payment status
-      pollOrderStatus(data.out_trade_no);
+      // Navigate to payment page (return_url brings user back after payment)
+      location.href = data.pay_url;
     } else {
       msg.textContent = data.error || "创建订单失败";
     }
