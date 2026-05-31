@@ -1,6 +1,6 @@
 // POST /api/membership/create-order — create epay order
 import { verify } from '../../_utils/jwt.js';
-import { getDB, createOrder } from '../../_utils/db.js';
+import { getDB, initDB, createOrder } from '../../_utils/db.js';
 
 const EPAY_PID = '11898';
 const EPAY_KEY = 'a3NcrTlnT1anCcQGyAWb';
@@ -145,6 +145,7 @@ function md5Pure(string) {
 
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
+  await initDB(db);
   const auth = request.headers.get('Authorization') || '';
   const token = auth.replace('Bearer ', '');
 

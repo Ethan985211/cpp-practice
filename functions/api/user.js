@@ -1,9 +1,10 @@
 // GET /api/user — return current user info + membership status
 import { verify } from '../_utils/jwt.js';
-import { getDB, getMembership } from '../_utils/db.js';
+import { getDB, initDB, getMembership } from '../_utils/db.js';
 
 export async function onRequestGet({ env, request }) {
   const db = getDB(env);
+  await initDB(db);
   const auth = request.headers.get('Authorization') || '';
   const token = auth.replace('Bearer ', '');
 

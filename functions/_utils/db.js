@@ -1,5 +1,51 @@
 // D1 database helpers
 
+let _initialized = false;
+
+export async function initDB(db) {
+  if (_initialized) return;
+  const sql = `
+    CREATE TABLE IF NOT EXISTS accounts (
+      username TEXT PRIMARY KEY,
+      password_hash TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sessions (
+      token TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      expires_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS memberships (
+      username TEXT PRIMARY KEY,
+      level TEXT NOT NULL,
+      expire_at INTEGER NOT NULL,
+      activated_at INTEGER NOT NULL,
+      trade_no TEXT DEFAULT '',
+      amount TEXT DEFAULT '0.00'
+    );
+    CREATE TABLE IF NOT EXISTS orders (
+      out_trade_no TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      plan TEXT NOT NULL,
+      amount TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      paid INTEGER DEFAULT 0,
+      paid_at INTEGER DEFAULT 0
+    );
+    CREATE INDEX IF NOT EXISTS idx_sessions_username ON sessions(username);
+    CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_memberships_expire ON memberships(expire_at);
+    CREATE INDEX IF NOT EXISTS idx_orders_username ON orders(username);
+  `;
+  // D1 doesn't support multiple statements, run one by one
+  for (const stmt of sql.split(';').map(s => s.trim()).filter(s => s.length > 0)) {
+    await db.prepare(stmt).run();
+  }
+  _initialized = true;
+}
+
 export function getDB(env) {
   if (!env || !env.DB) {
     throw new Error('D1 database not bound. Set DB binding in Cloudflare Pages dashboard.');

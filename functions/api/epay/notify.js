@@ -1,5 +1,5 @@
 // GET /api/epay/notify — epay payment callback
-import { getDB, getOrderStatus, markOrderPaid, activateMembership } from '../../_utils/db.js';
+import { getDB, initDB, getOrderStatus, markOrderPaid, activateMembership } from '../../_utils/db.js';
 
 const EPAY_KEY = 'a3NcrTlnT1anCcQGyAWb';
 const PLAN_DAYS = { week: 7, month: 30, year: 365, '3year': 1095 };
@@ -64,6 +64,7 @@ function verifySign(params, sign) {
 
 export async function onRequestGet({ env, request }) {
   const db = getDB(env);
+  await initDB(db);
   const url = new URL(request.url);
   const params = {};
   for (const [k, v] of url.searchParams) { params[k] = v; }

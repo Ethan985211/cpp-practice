@@ -1,9 +1,10 @@
 // POST /api/login
 import { sign } from '../_utils/jwt.js';
-import { getDB, getAccount, getMembership } from '../_utils/db.js';
+import { getDB, initDB, getAccount, getMembership } from '../_utils/db.js';
 
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
+  await initDB(db);
   try {
     const { username, password } = await request.json();
     if (!username || !password) {

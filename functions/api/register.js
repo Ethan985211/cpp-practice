@@ -1,9 +1,10 @@
 // POST /api/register
 import { sign } from '../_utils/jwt.js';
-import { getDB, createAccount } from '../_utils/db.js';
+import { getDB, initDB, createAccount } from '../_utils/db.js';
 
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
+  await initDB(db);
   try {
     const { username, password } = await request.json();
     if (!username || !password || username.length < 2 || password.length < 4) {

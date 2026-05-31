@@ -1,9 +1,10 @@
 // POST /api/orders/check — check order payment status
 import { verify } from '../../_utils/jwt.js';
-import { getDB, getOrderStatus } from '../../_utils/db.js';
+import { getDB, initDB, getOrderStatus } from '../../_utils/db.js';
 
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
+  await initDB(db);
   const auth = request.headers.get('Authorization') || '';
   const token = auth.replace('Bearer ', '');
 
