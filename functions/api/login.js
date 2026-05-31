@@ -29,10 +29,11 @@ export async function onRequestPost({ env, request }) {
     }
 
     const membership = await getMembership(db, username.trim());
-    const token = await sign({ username: username.trim(), member: membership.member, level: membership.level, expire_at: membership.expire_at });
+    const token = await sign({ username: username.trim(), role: account.role || 'user', member: membership.member, level: membership.level, expire_at: membership.expire_at });
 
     return Response.json({
       success: true, token, username: username.trim(),
+      role: account.role || 'user',
       membership
     });
   } catch (e) {

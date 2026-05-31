@@ -1,6 +1,6 @@
 // GET /api/user — return current user info + membership status
 import { verify } from '../_utils/jwt.js';
-import { getDB, initDB, getMembership } from '../_utils/db.js';
+import { getDB, initDB, getMembership, isAdmin } from '../_utils/db.js';
 
 export async function onRequestGet({ env, request }) {
   const db = getDB(env);
@@ -18,10 +18,12 @@ export async function onRequestGet({ env, request }) {
   }
 
   const membership = await getMembership(db, payload.username);
+  const admin = await isAdmin(db, payload.username, env);
 
   return Response.json({
     logged_in: true,
     username: payload.username,
+    role: admin ? 'admin' : 'user',
     membership: {
       member: membership.member,
       level: membership.level,

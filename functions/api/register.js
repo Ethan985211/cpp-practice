@@ -1,6 +1,6 @@
 // POST /api/register
 import { sign } from '../_utils/jwt.js';
-import { getDB, initDB, createAccount } from '../_utils/db.js';
+import { getDB, initDB, createAccount, setUserRole } from '../_utils/db.js';
 
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
@@ -30,8 +30,13 @@ export async function onRequestPost({ env, request }) {
       return Response.json({ error: result.error }, { status: 409 });
     }
 
-    const token = await sign({ username: username.trim() });
-    return Response.json({ success: true, token, username: username.trim() });
+    // First registered user becomes admin
+    const count = await db.prepare('SELECT COUNT(*) as c FROM accounts').first();
+    const role = count.c === 1 ? 'admin' : 'user';
+    if (role === 'admin') await setUserRole(db, username.trim(), 'admin');
+
+    const token = await sign({ username: username.trim(), role });
+    return Response.json({ success: true, token, username: username.trim(), role });
   } catch (e) {
     return Response.json({ error: '注册失败: ' + e.message }, { status: 500 });
   }

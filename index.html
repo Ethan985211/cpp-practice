@@ -356,6 +356,54 @@ footer{text-align:center;padding:28px;color:var(--text3);font-size:12px;border-t
 .member-info{font-size:13px;color:var(--text2);text-align:center;margin:12px 0}
 .member-badge{display:inline-block;font-size:10px;background:linear-gradient(135deg,#f59e0b,#eab308);color:#1a1a2e;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:6px;vertical-align:middle}
 .acct-dropdown-item.member-upgrade{color:var(--accent);font-weight:600;border-top:1px solid var(--border);margin-top:4px;padding-top:10px}
+.acct-dropdown-item.admin-panel-link{color:var(--purple);font-weight:600}
+
+/* ═══ Admin Panel ═══ */
+.admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.admin-overlay.open{display:flex}
+.admin-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:760px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.4);animation:modalIn .2s ease}
+.admin-header{padding:18px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.admin-header h2{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.admin-tabs{display:flex;gap:0;padding:0 22px;border-bottom:1px solid var(--border);flex-shrink:0}
+.admin-tab{padding:10px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font)}
+.admin-tab:hover{color:var(--text)}
+.admin-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.admin-body{flex:1;overflow-y:auto;padding:20px 22px}
+.admin-body h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:8px}
+.admin-toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th,.admin-table td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.admin-table th{font-size:11px;text-transform:uppercase;color:var(--text3);font-weight:600;letter-spacing:.3px}
+.admin-table td{color:var(--text)}
+.admin-table tr:hover td{background:var(--surface2)}
+.admin-table .actions{display:flex;gap:6px}
+.admin-table .actions button{padding:4px 12px;border-radius:var(--radius-xs);font-size:12px;cursor:pointer;transition:all .15s;font-family:var(--font);border:1px solid var(--border);background:var(--surface2);color:var(--text)}
+.admin-table .actions button:hover{border-color:var(--accent);color:var(--accent)}
+.admin-table .actions button.danger{color:var(--red)}
+.admin-table .actions button.danger:hover{border-color:var(--red);background:var(--red-soft)}
+.admin-table .actions button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.admin-table .actions button.primary:hover{background:#3d93e8}
+
+/* Admin form */
+.admin-form{display:grid;gap:14px}
+.admin-form label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px}
+.admin-form input,.admin-form textarea,.admin-form select{width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);color:var(--text);font-size:13px;font-family:var(--font);outline:none;resize:vertical}
+.admin-form input:focus,.admin-form textarea:focus,.admin-form select:focus{border-color:var(--accent)}
+.admin-form textarea{min-height:80px;font-family:var(--mono)}
+.admin-form textarea.tall{min-height:140px}
+.admin-form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.admin-form-actions{display:flex;gap:10px;margin-top:6px}
+.admin-form-actions button{padding:9px 22px;border-radius:var(--radius-xs);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);font-family:var(--font);transition:all .2s}
+.admin-form-actions .btn-save{background:var(--accent);color:#fff;border-color:var(--accent)}
+.admin-form-actions .btn-save:hover{background:#3d93e8}
+.admin-form-actions .btn-cancel{background:var(--surface2);color:var(--text)}
+.admin-form-actions .btn-cancel:hover{border-color:var(--accent)}
+
+/* Test case editor */
+.testcase-editor{margin-top:8px}
+.testcase-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:start}
+.testcase-row textarea{min-height:56px;font-size:11px}
+.testcase-row button{align-self:center}
 </style>
 </head>
 <body>
@@ -370,6 +418,7 @@ footer{text-align:center;padding:28px;color:var(--text3);font-size:12px;border-t
       </button>
       <div class="acct-dropdown" id="acctDropdown">
         <div class="acct-dropdown-item" id="ddMembership" onclick="showMembershipModal()" style="display:none;color:var(--accent);font-weight:600">开通会员</div>
+        <div class="acct-dropdown-item admin-panel-link" id="ddAdminPanel" onclick="openAdminPanel()" style="display:none">管理后台</div>
         <div class="acct-dropdown-item" onclick="showAuthModal('login')">切换账号</div>
         <div class="acct-dropdown-item danger" onclick="handleLogout()">退出登录</div>
       </div>
@@ -478,6 +527,7 @@ var acctUsername = "";
 var acctLoggedIn = false;
 var acctMember = false;
 var acctMembershipInfo = null;
+var acctRole = "user";
 
 async function loadUserFromServer() {
   if (!acctToken) return false;
@@ -490,6 +540,7 @@ async function loadUserFromServer() {
     if (!data.logged_in) { acctToken = ""; localStorage.removeItem(AK); return false; }
     acctUsername = data.username;
     acctLoggedIn = true;
+    acctRole = data.role || "user";
     // Store membership info
     if (data.membership && data.membership.member) {
       acctMember = true;
@@ -623,16 +674,19 @@ function updateAcctUI() {
   const btn = document.getElementById("acctBtn");
   const text = document.getElementById("acctBtnText");
   const ddMember = document.getElementById("ddMembership");
+  const ddAdmin = document.getElementById("ddAdminPanel");
   if (acctLoggedIn && acctUsername) {
     const initial = acctUsername[0].toUpperCase();
     let badgeHtml = acctMember ? `<span class="member-badge">会员</span>` : "";
     btn.innerHTML = `<span class="acct-avatar">${initial}</span><span id="acctBtnText">${acctUsername}</span>${badgeHtml}`;
     btn.classList.add("logged-in");
     ddMember.style.display = acctMember ? "none" : "block";
+    ddAdmin.style.display = acctRole === "admin" ? "block" : "none";
   } else {
     btn.innerHTML = '<span id="acctBtnText">登录</span>';
     btn.classList.remove("logged-in");
     ddMember.style.display = "none";
+    ddAdmin.style.display = "none";
   }
 }
 
@@ -732,6 +786,7 @@ async function handleAuthSubmit() {
     saveToken(data.token);
     acctUsername = data.username;
     acctLoggedIn = true;
+    acctRole = data.role || "user";
     // Store membership from response
     if (data.membership && data.membership.member) {
       acctMember = true;
@@ -775,6 +830,7 @@ async function handleLogout() {
   acctLoggedIn = false;
   acctMember = false;
   acctMembershipInfo = null;
+  acctRole = "user";
   updateAcctUI();
 }
 
@@ -1614,6 +1670,386 @@ document.addEventListener("keydown", e => {
   if (e.ctrlKey && e.key === "Enter") { const btn = document.querySelector(".judge-submit-btn"); if (btn && !btn.disabled) btn.click(); }
 });
 
+// ═══ Admin Panel ═══
+var adminTab = "problems";
+var adminEditMode = false;
+var adminEditId = null;
+
+function openAdminPanel() {
+  document.getElementById("acctDropdown").classList.remove("show");
+  document.getElementById("adminOverlay").classList.add("open");
+  switchAdminTab("problems");
+}
+
+function closeAdminPanel(e) {
+  if (e && e.target !== document.getElementById("adminOverlay")) return;
+  document.getElementById("adminOverlay").classList.remove("open");
+  adminEditMode = false;
+  adminEditId = null;
+}
+
+function switchAdminTab(tab) {
+  adminTab = tab;
+  adminEditMode = false;
+  adminEditId = null;
+  document.querySelectorAll(".admin-tab").forEach(t => t.classList.remove("active"));
+  document.querySelector(`.admin-tab[data-admin-tab="${tab}"]`).classList.add("active");
+  if (tab === "problems") loadAdminProblems();
+  else if (tab === "contests") loadAdminContests();
+  else if (tab === "users") loadAdminUsers();
+}
+
+async function adminAuthFetch(url, options = {}) {
+  try {
+    return await fetch(url, {
+      ...options,
+      headers: { ...(options.headers || {}), "Authorization": "Bearer " + acctToken }
+    });
+  } catch(e) {
+    return { ok: false, json: async () => ({error: "网络错误"}) };
+  }
+}
+
+// --- Problems ---
+async function loadAdminProblems() {
+  const body = document.getElementById("adminBody");
+  if (adminEditMode) { showProblemEditor(); return; }
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/problems");
+    const data = await resp.json();
+    if (!resp.ok) { body.innerHTML = `<p style="color:var(--red)">加载失败: ${data.error}</p>`; return; }
+    const probs = data.problems || [];
+    body.innerHTML = `<div class="admin-toolbar">
+      <button class="admin-table actions button primary" onclick="adminEditMode=true;adminEditId=null;showProblemEditor()">添加题目</button>
+    </div>
+    ${probs.length === 0 ? '<p style="color:var(--text2)">暂无自定义题目</p>' : `
+      <table class="admin-table"><thead><tr><th>ID</th><th>标题</th><th>难度</th><th>类别</th><th>创建者</th><th>操作</th></tr></thead>
+      <tbody>${probs.map(p => `
+        <tr>
+          <td>${p.id}</td><td>${escHtml(p.title)}</td>
+          <td>${"★".repeat(p.difficulty)}</td><td>${escHtml(p.category||'')}</td>
+          <td>${escHtml(p.created_by||'')}</td>
+          <td class="actions">
+            <button onclick="adminEditProblem(${p.id})">编辑</button>
+            <button class="danger" onclick="adminDeleteProblem(${p.id})">删除</button>
+          </td>
+        </tr>`).join("")}</tbody></table>`}`;
+  } catch(e) { body.innerHTML = `<p style="color:var(--red)">加载失败</p>`; }
+}
+
+async function adminEditProblem(id) {
+  adminEditMode = true; adminEditId = id;
+  await showProblemEditor();
+}
+
+function showProblemEditor() {
+  const body = document.getElementById("adminBody");
+  const isEdit = adminEditId !== null;
+  body.innerHTML = `<div class="admin-form" id="problemForm">
+    <h3>${isEdit ? "编辑题目" : "新建题目"}</h3>
+    <div><label>标题</label><input id="peTitle" placeholder="题目名称"></div>
+    <div class="admin-form-row">
+      <div><label>难度 (1-5)</label><select id="peDifficulty">${[1,2,3,4,5].map(d=>`<option value="${d}">${"★".repeat(d)}</option>`).join("")}</select></div>
+      <div><label>类别</label><input id="peCategory" placeholder="如: dynamic-programming"></div>
+    </div>
+    <div><label>题目描述 (Markdown)</label><textarea class="tall" id="peDescription" placeholder="题目描述..."></textarea></div>
+    <div class="admin-form-row">
+      <div><label>输入描述</label><textarea id="peInputDesc" placeholder="输入格式..."></textarea></div>
+      <div><label>输出描述</label><textarea id="peOutputDesc" placeholder="输出格式..."></textarea></div>
+    </div>
+    <div class="admin-form-row">
+      <div><label>样例输入</label><textarea id="peSampleInput" placeholder="样例输入"></textarea></div>
+      <div><label>样例输出</label><textarea id="peSampleOutput" placeholder="样例输出"></textarea></div>
+    </div>
+    <div><label>提示</label><textarea id="peHint" placeholder="提示信息..."></textarea></div>
+    <div><label>题解思路</label><textarea class="tall" id="peSolutionText" placeholder="题解说明..."></textarea></div>
+    <div><label>C++ 模板代码</label><textarea class="tall" id="peSolutionCode" placeholder="#include &lt;iostream&gt;..."></textarea></div>
+    <div>
+      <label>测试用例 (JSON)</label>
+      <div class="testcase-editor" id="testCaseEditor"></div>
+      <div class="admin-toolbar" style="margin-top:8px">
+        <button onclick="addTestCase()" class="admin-table actions button">添加测试用例</button>
+      </div>
+    </div>
+    <div class="admin-form-actions">
+      <button class="btn-save" onclick="saveProblem()">保存</button>
+      <button class="btn-cancel" onclick="adminEditMode=false;adminEditId=null;loadAdminProblems()">取消</button>
+    </div>
+  </div>`;
+  if (isEdit) loadProblemData(adminEditId);
+  else { window._testCases = [{input:"", output:""}]; renderTestCases(); }
+}
+
+async function loadProblemData(id) {
+  const resp = await adminAuthFetch(AUTH_URL + "/api/admin/problems?id=" + id);
+  const data = await resp.json();
+  if (data.problem) {
+    const p = data.problem;
+    document.getElementById("peTitle").value = p.title || "";
+    document.getElementById("peDifficulty").value = p.difficulty || 1;
+    document.getElementById("peCategory").value = p.category || "";
+    document.getElementById("peDescription").value = p.description || "";
+    document.getElementById("peInputDesc").value = p.input_desc || "";
+    document.getElementById("peOutputDesc").value = p.output_desc || "";
+    document.getElementById("peSampleInput").value = p.sample_input || "";
+    document.getElementById("peSampleOutput").value = p.sample_output || "";
+    document.getElementById("peHint").value = p.hint || "";
+    document.getElementById("peSolutionText").value = p.solution_text || "";
+    document.getElementById("peSolutionCode").value = p.solution_code || "";
+    window._testCases = p.test_cases || [{input:"", output:""}];
+    renderTestCases();
+  }
+}
+
+function addTestCase() {
+  if (!window._testCases) window._testCases = [];
+  window._testCases.push({input:"", output:""});
+  renderTestCases();
+}
+
+function delTestCase(idx) {
+  window._testCases.splice(idx, 1);
+  if (window._testCases.length === 0) window._testCases = [{input:"", output:""}];
+  renderTestCases();
+}
+
+function renderTestCases() {
+  const el = document.getElementById("testCaseEditor");
+  if (!el) return;
+  const tcs = window._testCases || [];
+  el.innerHTML = tcs.map((tc, i) => `
+    <div class="testcase-row">
+      <textarea placeholder="输入" onchange="window._testCases[${i}].input=this.value">${escHtml(tc.input||"")}</textarea>
+      <textarea placeholder="期望输出" onchange="window._testCases[${i}].output=this.value">${escHtml(tc.output||"")}</textarea>
+      <button onclick="delTestCase(${i})" class="admin-table actions button danger" style="margin-top:0">删除</button>
+    </div>`).join("");
+}
+
+async function saveProblem() {
+  const data = {
+    title: document.getElementById("peTitle").value.trim(),
+    difficulty: parseInt(document.getElementById("peDifficulty").value),
+    category: document.getElementById("peCategory").value.trim(),
+    description: document.getElementById("peDescription").value,
+    input_desc: document.getElementById("peInputDesc").value,
+    output_desc: document.getElementById("peOutputDesc").value,
+    sample_input: document.getElementById("peSampleInput").value,
+    sample_output: document.getElementById("peSampleOutput").value,
+    hint: document.getElementById("peHint").value,
+    solution_text: document.getElementById("peSolutionText").value,
+    solution_code: document.getElementById("peSolutionCode").value,
+    test_cases: window._testCases || []
+  };
+  if (!data.title) { alert("标题不能为空"); return; }
+
+  const isEdit = adminEditId !== null;
+  const method = isEdit ? "PUT" : "POST";
+  const url = AUTH_URL + "/api/admin/problems" + (isEdit ? "?id=" + adminEditId : "");
+
+  try {
+    const resp = await adminAuthFetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(data) });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      adminEditMode = false; adminEditId = null;
+      loadAdminProblems();
+    } else {
+      alert("保存失败: " + (result.error || "未知错误"));
+    }
+  } catch(e) { alert("保存失败: 网络错误"); }
+}
+
+async function adminDeleteProblem(id) {
+  if (!confirm("确定删除该题目？此操作不可撤销。")) return;
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/problems?id=" + id, { method: "DELETE" });
+    const result = await resp.json();
+    if (resp.ok && result.success) loadAdminProblems();
+    else alert("删除失败: " + (result.error || "未知错误"));
+  } catch(e) { alert("删除失败: 网络错误"); }
+}
+
+// --- Contests ---
+async function loadAdminContests() {
+  const body = document.getElementById("adminBody");
+  if (adminEditMode) { showContestEditor(); return; }
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/contests");
+    const data = await resp.json();
+    if (!resp.ok) { body.innerHTML = `<p style="color:var(--red)">加载失败: ${data.error}</p>`; return; }
+    const contests = data.contests || [];
+    body.innerHTML = `<div class="admin-toolbar">
+      <button class="admin-table actions button primary" onclick="adminEditMode=true;adminEditId=null;showContestEditor()">创建比赛</button>
+    </div>
+    ${contests.length === 0 ? '<p style="color:var(--text2)">暂无比赛</p>' : `
+      <table class="admin-table"><thead><tr><th>ID</th><th>标题</th><th>开始时间</th><th>结束时间</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody>${contests.map(c => {
+        const start = new Date(c.start_time*1000).toLocaleString("zh-CN");
+        const end = new Date(c.end_time*1000).toLocaleString("zh-CN");
+        const now = Date.now()/1000;
+        let status = "未开始";
+        if (now >= c.start_time && now <= c.end_time) status = '<span style="color:var(--green)">进行中</span>';
+        else if (now > c.end_time) status = '<span style="color:var(--text3)">已结束</span>';
+        return `<tr>
+          <td>${c.id}</td><td>${escHtml(c.title)}</td>
+          <td style="font-size:12px">${start}</td>
+          <td style="font-size:12px">${end}</td>
+          <td>${c.is_active ? status : '<span style="color:var(--text3)">未激活</span>'}</td>
+          <td class="actions">
+            <button onclick="adminEditContest(${c.id})">编辑</button>
+            <button onclick="adminToggleContest(${c.id},${c.is_active?0:1})">${c.is_active?'停用':'激活'}</button>
+            <button class="danger" onclick="adminDeleteContest(${c.id})">删除</button>
+          </td>
+        </tr>`}).join("")}</tbody></table>`}`;
+  } catch(e) { body.innerHTML = `<p style="color:var(--red)">加载失败</p>`; }
+}
+
+async function adminEditContest(id) {
+  adminEditMode = true; adminEditId = id;
+  await showContestEditor();
+}
+
+async function showContestEditor() {
+  const body = document.getElementById("adminBody");
+  const isEdit = adminEditId !== null;
+  // Load available problems for selection
+  let problemCheckboxes = "";
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/problems");
+    const data = await resp.json();
+    const probs = data.problems || [];
+    problemCheckboxes = probs.map(p => `<label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px">
+      <input type="checkbox" value="${p.id}" class="contest-prob-cb"> ${escHtml(p.title)} (${"★".repeat(p.difficulty)})
+    </label>`).join("");
+  } catch(e) {}
+
+  body.innerHTML = `<div class="admin-form" id="contestForm">
+    <h3>${isEdit ? "编辑比赛" : "创建比赛"}</h3>
+    <div><label>比赛标题</label><input id="ceTitle" placeholder="比赛名称"></div>
+    <div><label>描述</label><textarea id="ceDescription" placeholder="比赛描述..."></textarea></div>
+    <div class="admin-form-row">
+      <div><label>开始时间</label><input type="datetime-local" id="ceStartTime"></div>
+      <div><label>结束时间</label><input type="datetime-local" id="ceEndTime"></div>
+    </div>
+    <div>
+      <label>选择题目</label>
+      <div style="max-height:200px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:10px 14px;margin-bottom:8px">
+        ${problemCheckboxes || '<p style="color:var(--text2);font-size:13px">暂无可用题目，请先创建题目</p>'}
+      </div>
+    </div>
+    <div class="admin-form-actions">
+      <button class="btn-save" onclick="saveContest()">保存</button>
+      <button class="btn-cancel" onclick="adminEditMode=false;adminEditId=null;loadAdminContests()">取消</button>
+    </div>
+  </div>`;
+
+  if (isEdit) loadContestData(adminEditId);
+}
+
+async function loadContestData(id) {
+  const resp = await adminAuthFetch(AUTH_URL + "/api/admin/contests?id=" + id);
+  const data = await resp.json();
+  if (data.contest) {
+    const c = data.contest;
+    document.getElementById("ceTitle").value = c.title || "";
+    document.getElementById("ceDescription").value = c.description || "";
+    if (c.start_time) document.getElementById("ceStartTime").value = new Date(c.start_time*1000).toISOString().slice(0,16);
+    if (c.end_time) document.getElementById("ceEndTime").value = new Date(c.end_time*1000).toISOString().slice(0,16);
+    (c.problem_ids || []).forEach(pid => {
+      const cb = document.querySelector(`.contest-prob-cb[value="${pid}"]`);
+      if (cb) cb.checked = true;
+    });
+  }
+}
+
+async function saveContest() {
+  const problemIds = [...document.querySelectorAll(".contest-prob-cb:checked")].map(cb => parseInt(cb.value));
+  const startStr = document.getElementById("ceStartTime").value;
+  const endStr = document.getElementById("ceEndTime").value;
+  const data = {
+    title: document.getElementById("ceTitle").value.trim(),
+    description: document.getElementById("ceDescription").value,
+    start_time: startStr ? Math.floor(new Date(startStr).getTime()/1000) : 0,
+    end_time: endStr ? Math.floor(new Date(endStr).getTime()/1000) : 0,
+    problem_ids: problemIds,
+    is_active: 0
+  };
+  if (!data.title) { alert("比赛标题不能为空"); return; }
+  if (data.start_time >= data.end_time) { alert("结束时间必须晚于开始时间"); return; }
+
+  const isEdit = adminEditId !== null;
+  const method = isEdit ? "PUT" : "POST";
+  const url = AUTH_URL + "/api/admin/contests" + (isEdit ? "?id=" + adminEditId : "");
+
+  try {
+    const resp = await adminAuthFetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(data) });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      adminEditMode = false; adminEditId = null;
+      loadAdminContests();
+    } else {
+      alert("保存失败: " + (result.error || "未知错误"));
+    }
+  } catch(e) { alert("保存失败: 网络错误"); }
+}
+
+async function adminToggleContest(id, active) {
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/contests?id=" + id, {
+      method: "PUT", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ is_active: active })
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) loadAdminContests();
+    else alert("操作失败: " + (result.error || "未知错误"));
+  } catch(e) { alert("操作失败: 网络错误"); }
+}
+
+async function adminDeleteContest(id) {
+  if (!confirm("确定删除该比赛？所有相关提交数据也将被删除。")) return;
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/contests?id=" + id, { method: "DELETE" });
+    const result = await resp.json();
+    if (resp.ok && result.success) loadAdminContests();
+    else alert("删除失败: " + (result.error || "未知错误"));
+  } catch(e) { alert("删除失败: 网络错误"); }
+}
+
+// --- Users ---
+async function loadAdminUsers() {
+  const body = document.getElementById("adminBody");
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/users");
+    const data = await resp.json();
+    if (!resp.ok) { body.innerHTML = `<p style="color:var(--red)">加载失败: ${data.error}</p>`; return; }
+    const users = data.users || [];
+    body.innerHTML = `<table class="admin-table"><thead><tr><th>用户名</th><th>角色</th><th>注册时间</th><th>操作</th></tr></thead>
+      <tbody>${users.map(u => {
+        const created = new Date(u.created_at).toLocaleString("zh-CN");
+        return `<tr>
+          <td>${escHtml(u.username)}</td>
+          <td>${u.role === "admin" ? '<span style="color:var(--purple)">管理员</span>' : '用户'}</td>
+          <td style="font-size:12px">${created}</td>
+          <td class="actions">
+            ${u.role !== "admin" ? `<button onclick="adminPromoteUser('${u.username}','admin')">设为管理员</button>` : `<button class="danger" onclick="adminPromoteUser('${u.username}','user')">取消管理员</button>`}
+          </td>
+        </tr>`}).join("")}</tbody></table>`;
+  } catch(e) { body.innerHTML = `<p style="color:var(--red)">加载失败</p>`; }
+}
+
+async function adminPromoteUser(username, role) {
+  const msg = role === "admin" ? `确定将 ${username} 设为管理员？` : `确定取消 ${username} 的管理员权限？`;
+  if (!confirm(msg)) return;
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/users", {
+      method: "PUT", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({username, role})
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) loadAdminUsers();
+    else alert("操作失败: " + (result.error || "未知错误"));
+  } catch(e) { alert("操作失败: 网络错误"); }
+}
+
 // ═══ Init ═══
 (async function init() {
   // Try to restore session from saved token
@@ -1640,6 +2076,22 @@ document.addEventListener("keydown", e => {
     <div class="member-plans" id="memberPlans"></div>
     <button class="member-btn" id="memberPayBtn" onclick="createMembershipOrder()" disabled>请选择套餐</button>
     <div class="member-info" id="memberPayMsg"></div>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div class="admin-overlay" id="adminOverlay" onclick="closeAdminPanel(event)">
+  <div class="admin-panel" onclick="event.stopPropagation()">
+    <div class="admin-header">
+      <h2>管理后台</h2>
+      <button class="auth-modal-close" onclick="closeAdminPanel()">&times;</button>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-admin-tab="problems" onclick="switchAdminTab('problems')">题目管理</button>
+      <button class="admin-tab" data-admin-tab="contests" onclick="switchAdminTab('contests')">比赛管理</button>
+      <button class="admin-tab" data-admin-tab="users" onclick="switchAdminTab('users')">用户管理</button>
+    </div>
+    <div class="admin-body" id="adminBody"></div>
   </div>
 </div>
 
