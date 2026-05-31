@@ -1588,11 +1588,11 @@ async function goToGeneratedProblem() {
 
     if (data.success) {
       if (data.duplicate) {
-        // Forward test cases to CVM if available and problem exists
+        // Forward test cases to CVM if available and problem exists (skip on CF Pages proxy)
         const tc = _lastAnalysisData.practice.test_cases;
-        if (tc && tc.length >= 5 && JUDGE_URL) {
+        if (tc && tc.length >= 5 && JUDGE_URL && JUDGE_URL.indexOf('/proxy') === -1) {
           try {
-            await fetch(JUDGE_URL + "/api/add-test-cases", {
+            await fetch(JUDGE_URL + "/add-test-cases", {
               method: "POST",
               headers: {"Content-Type": "application/json"},
               body: JSON.stringify({problem_id: data.problem_id, test_cases: tc.map(c => ({input:String(c.input||""),expected:String(c.expected||""),type:"hidden"}))})
@@ -1604,11 +1604,11 @@ async function goToGeneratedProblem() {
         return;
       }
 
-      // Forward test cases to CVM judge server
+      // Forward test cases to CVM judge server (skip on CF Pages proxy)
       const tc = _lastAnalysisData.practice.test_cases;
-      if (tc && tc.length >= 5 && JUDGE_URL) {
+      if (tc && tc.length >= 5 && JUDGE_URL && JUDGE_URL.indexOf('/proxy') === -1) {
         try {
-          await fetch(JUDGE_URL + "/api/add-test-cases", {
+          await fetch(JUDGE_URL + "/add-test-cases", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({problem_id: data.problem_id, test_cases: tc.map(c => ({input:String(c.input||""),expected:String(c.expected||""),type:"hidden"}))})
