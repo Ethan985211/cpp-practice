@@ -473,11 +473,11 @@ let currentCategory = "all";
 
 // ═══ Account State ═══
 const AK = "cpp-auth-token";
-let acctToken = sessionStorage.getItem(AK) || localStorage.getItem(AK) || "";
-let acctUsername = "";
-let acctLoggedIn = false;
-let acctMember = false;
-let acctMembershipInfo = null;
+var acctToken = sessionStorage.getItem(AK) || localStorage.getItem(AK) || "";
+var acctUsername = "";
+var acctLoggedIn = false;
+var acctMember = false;
+var acctMembershipInfo = null;
 
 async function loadUserFromServer() {
   if (!acctToken) return false;
