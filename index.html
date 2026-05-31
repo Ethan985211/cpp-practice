@@ -497,7 +497,7 @@ footer{text-align:center;padding:28px;color:var(--text3);font-size:12px;border-t
   <div class="modal" id="modal"></div>
 </div>
 
-<footer>C++ 算法刷题训练营 · 50 道精选题 · 7 个阶段 · 系统化算法学习 · v2</footer>
+<footer>C++ 算法刷题训练营 · 50 道精选题 · 7 个阶段 · 系统化算法学习 · v3</footer>
 
 <!-- Highlight.js -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-theme">
@@ -583,7 +583,7 @@ function saveProgress(p) {
   localStorage.setItem(PK, JSON.stringify(p));
   // Sync to server if logged in
   if (acctLoggedIn && acctToken) {
-    fetch(JUDGE_URL + "/api/save-progress", {
+    fetch(JUDGE_URL + "/save-progress", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -657,7 +657,7 @@ function toggleTheme() {
     : "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css";
   // Sync theme to server
   if (acctLoggedIn && acctToken) {
-    fetch(JUDGE_URL + "/api/save-progress", {
+    fetch(JUDGE_URL + "/save-progress", {
       method: "POST",
       headers: {"Content-Type": "application/json", "Authorization": "Bearer " + acctToken},
       body: JSON.stringify({progress: loadProgress(), theme: nt})
@@ -675,7 +675,7 @@ function toggleTheme() {
 
 // ═══ Account UI ═══
 const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-const JUDGE_URL = isLocal ? "http://127.0.0.1:8765" : "http://82.156.34.78";
+const JUDGE_URL = isLocal ? "http://127.0.0.1:8765/api" : "/api/proxy";
 const AUTH_URL = isLocal ? "http://127.0.0.1:8765" : "";
 
 function updateAcctUI() {
@@ -1327,7 +1327,7 @@ async function submitCode(problemId) {
   results.innerHTML = "";
 
   try {
-    const resp = await fetch(JUDGE_URL + "/api/judge", {
+    const resp = await fetch(JUDGE_URL + "/judge", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({code, problem_id: problemId})
@@ -1335,8 +1335,8 @@ async function submitCode(problemId) {
     const data = await resp.json();
     renderJudgeResults(data, problemId);
   } catch (e) {
-    status.textContent = "无法连接判题服务器 (127.0.0.1:8765)";
-    results.innerHTML = `<div class="verdict-bar unknown"><span class="verdict-icon">&#x26a0;</span>服务器未启动，请运行: python3 judge_server.py</div>`;
+    status.textContent = "无法连接判题服务器";
+    results.innerHTML = `<div class="verdict-bar unknown"><span class="verdict-icon">&#x26a0;</span>判题服务暂不可用，请稍后重试</div>`;
     results.classList.add("show");
   } finally {
     btn.disabled = false;
@@ -1425,7 +1425,7 @@ async function runCustomTest(problemId) {
   output.value = "";
 
   try {
-    const resp = await fetch(JUDGE_URL + "/api/run", {
+    const resp = await fetch(JUDGE_URL + "/run", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({code, input})
@@ -1447,7 +1447,7 @@ async function runCustomTest(problemId) {
     }
   } catch (e) {
     status.textContent = "无法连接判题服务器";
-    output.value = "服务器未启动，请运行: python3 judge_server.py";
+    output.value = "判题服务暂不可用，请稍后重试";
   }
 }
 
@@ -1521,7 +1521,7 @@ function renderAnalysis(data) {
   panel.classList.add("show");
 
   if (!data.success) {
-    panel.innerHTML = `<div class="ai-panel-section"><h4>&#x26a0; 错误</h4><div class="ai-diagnosis">${escHtml(data.error || '未知错误')}<br><small>请确保 judge_server.py 已设置 DEEPSEEK_API_KEY 后重启</small></div></div>`;
+    panel.innerHTML = `<div class="ai-panel-section"><h4>&#x26a0; 错误</h4><div class="ai-diagnosis">${escHtml(data.error || '未知错误')}<br><small>AI 分析服务暂不可用，请稍后再试</small></div></div>`;
     return;
   }
 
@@ -1580,7 +1580,7 @@ async function goToGeneratedProblem() {
   if (btn) { btn.disabled = true; btn.textContent = "保存中..."; }
 
   try {
-    const resp = await fetch(JUDGE_URL + "/api/save-generated-problem", {
+    const resp = await fetch(JUDGE_URL + "/save-generated-problem", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({problem: _lastAnalysisData.practice})
@@ -1621,7 +1621,7 @@ async function goToGeneratedProblem() {
 
 async function loadGeneratedProblems() {
   try {
-    const resp = await fetch(JUDGE_URL + "/api/generated-problems");
+    const resp = await fetch(JUDGE_URL + "/generated-problems");
     if (!resp.ok) return;
     const genProbs = await resp.json();
     if (!genProbs || genProbs.length === 0) return;
