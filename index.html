@@ -676,9 +676,9 @@ function toggleTheme() {
 
 // ═══ Account UI ═══
 const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-const JUDGE_URL = isLocal ? "http://127.0.0.1:8765/api" : "/api/proxy";
-console.log("v7 nip.io");
-const AUTH_URL = isLocal ? "http://127.0.0.1:8765" : "";
+const isCVM = location.hostname === '82.156.34.78';
+const JUDGE_URL = isLocal ? "http://127.0.0.1:8765/api" : (isCVM ? "/api" : "/api/proxy");
+const AUTH_URL = isLocal ? "http://127.0.0.1:8765" : (isCVM ? "https://cpp-practice.pages.dev" : "");
 
 function updateAcctUI() {
   const btn = document.getElementById("acctBtn");
