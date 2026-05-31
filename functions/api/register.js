@@ -1,6 +1,7 @@
 // POST /api/register
 import { sign } from '../_utils/jwt.js';
 import { getDB, initDB, createAccount, setUserRole } from '../_utils/db.js';
+import { addCORS } from '../_utils/cors.js';
 
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
@@ -8,10 +9,10 @@ export async function onRequestPost({ env, request }) {
   try {
     const { username, password } = await request.json();
     if (!username || !password || username.length < 2 || password.length < 4) {
-      return Response.json({ error: '用户名至少2个字符，密码至少4个字符' }, { status: 400 });
+      return addCORS(Response.json({ error: '用户名至少2个字符，密码至少4个字符' }, { status: 400 }), request);
     }
     if (username.length > 32) {
-      return Response.json({ error: '用户名最多32个字符' }, { status: 400 });
+      return addCORS(Response.json({ error: '用户名最多32个字符' }, { status: 400 }), request);
     }
 
     // PBKDF2-SHA256 hashing in Workers
@@ -27,7 +28,7 @@ export async function onRequestPost({ env, request }) {
 
     const result = await createAccount(db, username.trim(), passwordHash, salt);
     if (result.error) {
-      return Response.json({ error: result.error }, { status: 409 });
+      return addCORS(Response.json({ error: result.error }, { status: 409 }), request);
     }
 
     // First registered user becomes admin
@@ -36,14 +37,20 @@ export async function onRequestPost({ env, request }) {
     if (role === 'admin') await setUserRole(db, username.trim(), 'admin');
 
     const token = await sign({ username: username.trim(), role });
-    return Response.json({ success: true, token, username: username.trim(), role });
+    return addCORS(Response.json({ success: true, token, username: username.trim(), role }), request);
   } catch (e) {
-    return Response.json({ error: '注册失败: ' + e.message }, { status: 500 });
+    return addCORS(Response.json({ error: '注册失败: ' + e.message }, { status: 500 }), request);
   }
 }
 
 export async function onRequestOptions() {
   return new Response(null, {
-    headers: { 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Max-Age': '86400' }
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    }
   });
 }

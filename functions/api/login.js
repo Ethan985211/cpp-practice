@@ -1,6 +1,7 @@
 // POST /api/login
 import { sign } from '../_utils/jwt.js';
 import { getDB, initDB, getAccount, getMembership } from '../_utils/db.js';
+import { addCORS } from '../_utils/cors.js';
 
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
@@ -8,12 +9,12 @@ export async function onRequestPost({ env, request }) {
   try {
     const { username, password } = await request.json();
     if (!username || !password) {
-      return Response.json({ error: '请输入用户名和密码' }, { status: 400 });
+      return addCORS(Response.json({ error: '请输入用户名和密码' }, { status: 400 }), request);
     }
 
     const account = await getAccount(db, username.trim());
     if (!account) {
-      return Response.json({ error: '用户名或密码错误' }, { status: 401 });
+      return addCORS(Response.json({ error: '用户名或密码错误' }, { status: 401 }), request);
     }
 
     // Verify password
@@ -25,24 +26,30 @@ export async function onRequestPost({ env, request }) {
     const passwordHash = Array.from(new Uint8Array(hashBytes), b => b.toString(16).padStart(2, '0')).join('');
 
     if (passwordHash !== account.password_hash) {
-      return Response.json({ error: '用户名或密码错误' }, { status: 401 });
+      return addCORS(Response.json({ error: '用户名或密码错误' }, { status: 401 }), request);
     }
 
     const membership = await getMembership(db, username.trim());
     const token = await sign({ username: username.trim(), role: account.role || 'user', member: membership.member, level: membership.level, expire_at: membership.expire_at });
 
-    return Response.json({
+    return addCORS(Response.json({
       success: true, token, username: username.trim(),
       role: account.role || 'user',
       membership
-    });
+    }), request);
   } catch (e) {
-    return Response.json({ error: '登录失败: ' + e.message }, { status: 500 });
+    return addCORS(Response.json({ error: '登录失败: ' + e.message }, { status: 500 }), request);
   }
 }
 
 export async function onRequestOptions() {
   return new Response(null, {
-    headers: { 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Max-Age': '86400' }
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    }
   });
 }
