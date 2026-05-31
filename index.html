@@ -909,7 +909,7 @@ async function createMembershipOrder() {
     const resp = await fetch(AUTH_URL + "/api/membership/create-order", {
       method: "POST",
       headers: {"Content-Type":"application/json","Authorization":"Bearer "+acctToken},
-      body: JSON.stringify({plan:_selectedPlan, type:_payMethod})
+      body: JSON.stringify({plan_id:_selectedPlan, type:_payMethod})
     });
     const data = await resp.json();
     if (data.success && data.pay_url) {
