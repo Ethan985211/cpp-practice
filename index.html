@@ -1337,7 +1337,8 @@ async function submitCode(problemId) {
     renderJudgeResults(data, problemId);
   } catch (e) {
     status.textContent = "无法连接判题服务器";
-    results.innerHTML = `<div class="verdict-bar unknown"><span class="verdict-icon">&#x26a0;</span>判题服务暂不可用，请稍后重试</div>`;
+    const cvmLink = isCvm ? "" : '<p style="margin-top:12px;font-size:0.9em">请访问 <a href="http://82.156.34.78/cpp/" style="color:#60a5fa">http://82.156.34.78/cpp/</a> 使用完整判题功能</p>';
+    results.innerHTML = `<div class="verdict-bar unknown"><span class="verdict-icon">&#x26a0;</span>判题服务暂不可用，请稍后重试${cvmLink}</div>`;
     results.classList.add("show");
   } finally {
     btn.disabled = false;
