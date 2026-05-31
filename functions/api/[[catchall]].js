@@ -1,14 +1,15 @@
 // Proxy judge/ai requests to CVM (avoids mixed-content HTTPS→HTTP block)
 // All other /api/* routes are handled by dedicated Functions
 
-const CVM_URL = 'http://82.156.34.78';
+const CVM_HOST = '82.156.34.78.nip.io';
+const CVM_URL = 'http://' + CVM_HOST;
 
 export async function onRequestPost({ request }) {
   const url = new URL(request.url);
   const targetPath = url.pathname + url.search;
 
   const headers = new Headers(request.headers);
-  headers.set('Host', '82.156.34.78');
+  headers.set('Host', CVM_HOST);
 
   const resp = await fetch(CVM_URL + targetPath, {
     method: 'POST',
