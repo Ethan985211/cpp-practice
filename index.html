@@ -1938,16 +1938,12 @@ async function adminEditContest(id) {
 async function showContestEditor() {
   const body = document.getElementById("adminBody");
   const isEdit = adminEditId !== null;
-  // Load available problems for selection
-  let problemCheckboxes = "";
-  try {
-    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/problems");
-    const data = await resp.json();
-    const probs = data.problems || [];
-    problemCheckboxes = probs.map(p => `<label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px">
-      <input type="checkbox" value="${p.id}" class="contest-prob-cb"> ${escHtml(p.title)} (${"★".repeat(p.difficulty)})
+  // Use built-in allProblems (50 problems), not D1 which may be empty
+  const diffStars = { "简单": 1, "中等": 2, "困难": 3 };
+  let problemCheckboxes = (allProblems || []).map(p => `<label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px">
+      <input type="checkbox" value="${p.id}" class="contest-prob-cb"> ${escHtml(p.title)} (${"★".repeat(diffStars[p.difficulty] || 1)})
     </label>`).join("");
-  } catch(e) {}
+  if (!problemCheckboxes) problemCheckboxes = '<p style="color:var(--text2);font-size:13px">暂无可用题目</p>';
 
   body.innerHTML = `<div class="admin-form" id="contestForm">
     <h3>${isEdit ? "编辑比赛" : "创建比赛"}</h3>
@@ -1960,7 +1956,7 @@ async function showContestEditor() {
     <div>
       <label>选择题目</label>
       <div style="max-height:200px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:10px 14px;margin-bottom:8px">
-        ${problemCheckboxes || '<p style="color:var(--text2);font-size:13px">暂无可用题目，请先创建题目</p>'}
+        ${problemCheckboxes}
       </div>
     </div>
     <div class="admin-form-actions">
