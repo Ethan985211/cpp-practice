@@ -1,6 +1,6 @@
-// Admin Users API — GET list users, PUT set role
+// Admin Users API — GET list users, PUT set role/membership/ai_trials
 import { requireAdmin } from '../../_utils/admin.js';
-import { listUsers, setUserRole } from '../../_utils/db.js';
+import { listUsers, setUserRole, activateMembership } from '../../_utils/db.js';
 import { addCORS } from '../../_utils/cors.js';
 
 function ok(data, request) { return addCORS(Response.json(data), request); }
@@ -19,10 +19,22 @@ export async function onRequestGet({ env, request }) {
 export async function onRequestPut({ env, request }) {
   try {
     const { db } = await requireAdmin(env, request);
-    const { username, role } = await request.json();
-    if (!username || !role) return err('需要 username 和 role', 400, request);
-    if (!['admin', 'user'].includes(role)) return err('role 只能是 admin 或 user', 400, request);
-    await setUserRole(db, username, role);
+    const body = await request.json();
+    const { username, role, membership_level, membership_days, ai_trials_used } = body;
+    
+    if (role && ['admin', 'user'].includes(role)) {
+      await setUserRole(db, username, role);
+    }
+    
+    if (membership_level && membership_days) {
+      await activateMembership(db, username, membership_level, membership_days, 'admin_grant', '0.00');
+    }
+    
+    if (ai_trials_used !== undefined && ai_trials_used !== null) {
+      await db.prepare('UPDATE accounts SET ai_trials_used = ? WHERE username = ?')
+        .bind(ai_trials_used, username).run();
+    }
+    
     return ok({ success: true }, request);
   } catch (e) {
     return err(e.message, e.status || 500, request);
