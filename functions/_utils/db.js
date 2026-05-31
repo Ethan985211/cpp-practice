@@ -10,6 +10,7 @@ export async function initDB(db) {
       password_hash TEXT NOT NULL,
       salt TEXT NOT NULL,
       role TEXT DEFAULT 'user',
+      ai_trials_used INTEGER DEFAULT 0,
       created_at INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS sessions (
@@ -88,6 +89,8 @@ export async function initDB(db) {
   }
   // Add role column to existing accounts table (ignore error if already exists)
   try { await db.prepare("ALTER TABLE accounts ADD COLUMN role TEXT DEFAULT 'user'").run(); } catch (_) {}
+  // Add ai_trials_used column
+  try { await db.prepare("ALTER TABLE accounts ADD COLUMN ai_trials_used INTEGER DEFAULT 0").run(); } catch (_) {}
   _initialized = true;
 }
 
@@ -308,4 +311,22 @@ export async function getContestRanking(db, contestId) {
      GROUP BY username ORDER BY solved DESC, total_score DESC`
   ).bind(contestId).all();
   return results || [];
+}
+
+// --- AI Trial helpers ---
+
+const AI_TRIAL_LIMIT = 3;
+
+export async function getAiTrials(db, username) {
+  const row = await db.prepare('SELECT ai_trials_used FROM accounts WHERE username = ?').bind(username).first();
+  if (!row) return { used: 0, remaining: AI_TRIAL_LIMIT };
+  const used = row.ai_trials_used || 0;
+  return { used, remaining: Math.max(0, AI_TRIAL_LIMIT - used) };
+}
+
+export async function useAiTrial(db, username) {
+  const trials = await getAiTrials(db, username);
+  if (trials.remaining <= 0) return { success: false, error: '试用次数已用完' };
+  await db.prepare('UPDATE accounts SET ai_trials_used = ai_trials_used + 1 WHERE username = ?').bind(username).run();
+  return { success: true, remaining: trials.remaining - 1, used: trials.used + 1 };
 }

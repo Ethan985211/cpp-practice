@@ -534,6 +534,7 @@ var acctLoggedIn = false;
 var acctMember = false;
 var acctMembershipInfo = null;
 var acctRole = "user";
+var acctAiTrials = { used: 0, remaining: 3 };
 
 async function loadUserFromServer() {
   if (!acctToken) return false;
@@ -547,6 +548,7 @@ async function loadUserFromServer() {
     acctUsername = data.username;
     acctLoggedIn = true;
     acctRole = data.role || "user";
+    acctAiTrials = data.ai_trials || { used: 0, remaining: 3 };
     // Store membership info
     if (data.membership && data.membership.member) {
       acctMember = true;
@@ -793,6 +795,7 @@ async function handleAuthSubmit() {
     acctUsername = data.username;
     acctLoggedIn = true;
     acctRole = data.role || "user";
+    acctAiTrials = data.ai_trials || { used: 0, remaining: 3 };
     // Store membership from response
     if (data.membership && data.membership.member) {
       acctMember = true;
@@ -837,6 +840,7 @@ async function handleLogout() {
   acctMember = false;
   acctMembershipInfo = null;
   acctRole = "user";
+  acctAiTrials = { used: 0, remaining: 3 };
   updateAcctUI();
 }
 
@@ -1390,10 +1394,15 @@ function renderJudgeResults(data, problemId) {
   if (v !== "AC") {
     const btnLabels = {"WA":"分析错误原因","TLE":"分析超时原因","MLE":"分析内存超限","CE":"分析编译错误","RE":"分析运行错误"};
     const label = btnLabels[v] || "AI 智能分析";
-    if (acctMember) {
-      results.insertAdjacentHTML("beforeend", `<button class="ai-analyze-btn" id="aiAnalyzeBtn" onclick="requestAiAnalysis(${problemId},'${v}','${(data.verdict_label||'').replace(/'/g,"\\'")}')">${label}</button>`);
+    const canAi = acctMember || (acctLoggedIn && acctAiTrials.remaining > 0);
+    if (canAi) {
+      let trialInfo = '';
+      if (!acctMember && acctAiTrials.remaining > 0) {
+        trialInfo = `<span style="font-size:11px;margin-left:6px;opacity:.8">剩余${acctAiTrials.remaining}次免费</span>`;
+      }
+      results.insertAdjacentHTML("beforeend", `<button class="ai-analyze-btn" id="aiAnalyzeBtn" onclick="requestAiAnalysis(${problemId},'${v}','${(data.verdict_label||'').replace(/'/g,"\\'")}')">${label}${trialInfo}</button>`);
     } else if (acctLoggedIn) {
-      results.insertAdjacentHTML("beforeend", `<button class="ai-analyze-btn ai-analyze-locked" id="aiAnalyzeBtn" onclick="showMembershipModal()">开通会员解锁 AI 分析</button>`);
+      results.insertAdjacentHTML("beforeend", `<button class="ai-analyze-btn ai-analyze-locked" id="aiAnalyzeBtn" onclick="showMembershipModal()">开通会员解锁 AI 分析<span style="font-size:11px;margin-left:6px">(免费试用已用完)</span></button>`);
     } else {
       results.insertAdjacentHTML("beforeend", `<button class="ai-analyze-btn ai-analyze-locked" id="aiAnalyzeBtn" onclick="showAuthModal()">登录后使用 AI 分析</button>`);
     }
@@ -1447,7 +1456,7 @@ let _lastAnalysisData = null;
 
 async function requestAiAnalysis(problemId, verdict, verdictLabel) {
   if (!acctLoggedIn) { showAuthModal(); return; }
-  if (!acctMember) { showMembershipModal(); return; }
+  if (!acctMember && acctAiTrials.remaining <= 0) { showMembershipModal(); return; }
   const code = document.getElementById("judgeEditor").value.trim();
   const resultsEl = document.getElementById("judgeResults");
   const panel = document.getElementById("aiPanel");
@@ -1479,7 +1488,7 @@ async function requestAiAnalysis(problemId, verdict, verdictLabel) {
   try {
     const headers = {"Content-Type": "application/json"};
     if (acctToken) headers["Authorization"] = "Bearer " + acctToken;
-    const resp = await fetch(JUDGE_URL + "/api/ai-analyze", {
+    const resp = await fetch(AUTH_URL + "/api/ai-analyze", {
       method: "POST",
       headers,
       body: JSON.stringify({code, problem_id: problemId, verdict, verdict_label: verdictLabel, results})
@@ -1489,10 +1498,13 @@ async function requestAiAnalysis(problemId, verdict, verdictLabel) {
       return;
     }
     if (resp.status === 402) {
-      panel.innerHTML = `<div class="ai-panel-section"><h4>需要会员</h4><div class="ai-diagnosis">AI 分析功能需要开通会员才能使用。<br><button class="auth-submit" style="margin-top:12px;width:auto;padding:8px 20px;background:linear-gradient(135deg,#f59e0b,#eab308)" onclick="showMembershipModal()">开通会员</button></div></div>`;
+      panel.innerHTML = `<div class="ai-panel-section"><h4>次数用完</h4><div class="ai-diagnosis">免费试用次数已用完，开通会员即可无限使用 AI 分析。<br><button class="auth-submit" style="margin-top:12px;width:auto;padding:8px 20px;background:linear-gradient(135deg,#f59e0b,#eab308)" onclick="showMembershipModal()">开通会员</button></div></div>`;
       return;
     }
     const data = await resp.json();
+    if (data.ai_trials) {
+      acctAiTrials = data.ai_trials;
+    }
     renderAnalysis(data);
   } catch (e) {
     panel.innerHTML = `<div class="ai-panel-section"><h4>&#x26a0; 错误</h4><div class="ai-diagnosis">AI 分析服务不可用: ${escHtml(e.message)}</div></div>`;
