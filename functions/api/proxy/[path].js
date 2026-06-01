@@ -1,8 +1,8 @@
 // Proxy requests to CVM judge server
 // Routes: /api/proxy/judge, /api/proxy/run, /api/proxy/health, etc.
-// All forwarded to http://82.156.34.78/api/{path}
+// All forwarded to http://82.156.34.78:8766/api/{path}
 
-const CVM_BASE = 'http://82.156.34.78.nip.io';
+const CVM_BASE = 'http://82.156.34.78:8766';
 
 const PROXY_HEADERS = [
   'accept', 'accept-encoding', 'accept-language',
