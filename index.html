@@ -2001,19 +2001,27 @@ async function loadAdminProblems() {
     const probs = data.problems || [];
     body.innerHTML = `<div class="admin-toolbar">
       <button class="admin-table actions button primary" onclick="adminEditMode=true;adminEditId=null;showProblemEditor()">添加题目</button>
+      <span style="font-size:12px;color:var(--text2);margin-left:8px">已发布题目显示在前端，待验证题目需通过所有测试用例后方可发布</span>
     </div>
     ${probs.length === 0 ? '<p style="color:var(--text2)">暂无自定义题目</p>' : `
-      <table class="admin-table"><thead><tr><th>ID</th><th>标题</th><th>难度</th><th>类别</th><th>创建者</th><th>操作</th></tr></thead>
-      <tbody>${probs.map(p => `
+      <table class="admin-table"><thead><tr><th>ID</th><th>标题</th><th>难度</th><th>类别</th><th>状态</th><th>创建者</th><th>操作</th></tr></thead>
+      <tbody>${probs.map(p => {
+        const published = p.is_published === 1;
+        const statusHTML = published
+          ? '<span style="color:var(--green);font-weight:600">已发布</span>'
+          : '<span style="color:var(--orange);font-weight:600">待验证</span>';
+        return `
         <tr>
           <td>${p.id}</td><td>${escHtml(p.title)}</td>
           <td>${"★".repeat(p.difficulty)}</td><td>${escHtml(p.category||'')}</td>
+          <td>${statusHTML}</td>
           <td>${escHtml(p.created_by||'')}</td>
           <td class="actions">
             <button onclick="adminEditProblem(${p.id})">编辑</button>
+            ${!published ? `<button class="primary" onclick="adminRequestValidate(${p.id})">验证并发布</button>` : ''}
             <button class="danger" onclick="adminDeleteProblem(${p.id})">删除</button>
           </td>
-        </tr>`).join("")}</tbody></table>`}`;
+        </tr>`}).join("")}</tbody></table>`}`;
   } catch(e) { body.innerHTML = `<p style="color:var(--red)">加载失败</p>`; }
 }
 
@@ -2235,6 +2243,23 @@ async function adminDeleteProblem(id) {
     if (resp.ok && result.success) loadAdminProblems();
     else alert("删除失败: " + (result.error || "未知错误"));
   } catch(e) { alert("删除失败: 网络错误"); }
+}
+
+async function adminRequestValidate(id) {
+  if (!confirm("将对该题目的题解代码进行测试用例验证，验证通过后自动发布。\n\n系统将自动执行：\n1. 编译题解代码\n2. 运行所有测试用例\n3. 全部通过后自动发布\n\n验证可能需要30秒-1分钟，请稍后刷新查看结果。")) return;
+
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/request-validate", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({problem_id: id})
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) {
+      alert("验证请求已提交！系统将在后台自动执行验证，约30秒后刷新页面查看结果。");
+    } else {
+      alert("提交失败: " + (result.error || "未知错误"));
+    }
+  } catch(e) { alert("提交失败: 网络错误"); }
 }
 
 // --- Contests ---
