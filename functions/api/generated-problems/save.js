@@ -76,8 +76,10 @@ export async function onRequestPost({ env, request }) {
   }, 'ai-' + payload.username);
 
   // Build complete problem object for frontend
+  const offsetId = newId + 100000;
   const problem = {
-    id: newId,
+    id: offsetId,
+    id_raw: newId,
     title: finalTitle,
     difficulty: difficultyLabel,
     stage: 8,
@@ -115,7 +117,7 @@ export async function onRequestPost({ env, request }) {
 
   return addCORS(Response.json({
     success: true,
-    problem_id: newId,
+    problem_id: offsetId,
     problem,
     duplicate: duplicate || false
   }), request);

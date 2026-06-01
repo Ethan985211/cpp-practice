@@ -18,7 +18,8 @@ export async function onRequestGet({ env, request }) {
     try { testCases = JSON.parse(r.test_cases || '[]'); } catch {}
 
     return {
-      id: r.id,
+      id: r.id + 100000,
+      id_raw: r.id,
       title: r.title,
       difficulty: difficultyLabels[r.difficulty] || '中等',
       stage: 8,
