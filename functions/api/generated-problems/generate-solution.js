@@ -1,7 +1,7 @@
 // POST /api/generated-problems/generate-solution — backfill solution_code for existing problems
-import { verify } from '../_utils/jwt.js';
-import { getDB, initDB, isAdmin } from '../_utils/db.js';
-import { addCORS } from '../_utils/cors.js';
+import { verify } from '../../_utils/jwt.js';
+import { getDB, initDB, isAdmin } from '../../_utils/db.js';
+import { addCORS } from '../../_utils/cors.js';
 
 const DEEPSEEK_API = 'https://api.deepseek.com/v1/chat/completions';
 
