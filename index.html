@@ -1857,6 +1857,7 @@ function switchAdminTab(tab) {
   if (tab === "problems") loadAdminProblems();
   else if (tab === "contests") loadAdminContests();
   else if (tab === "users") loadAdminUsers();
+  else if (tab === "orders") loadAdminOrders();
 }
 
 async function adminAuthFetch(url, options = {}) {
@@ -2178,17 +2179,30 @@ async function loadAdminUsers() {
     const data = await resp.json();
     if (!resp.ok) { body.innerHTML = `<p style="color:var(--red)">加载失败: ${data.error}</p>`; return; }
     const users = data.users || [];
-    body.innerHTML = `<table class="admin-table"><thead><tr><th>用户名</th><th>角色</th><th>注册时间</th><th>操作</th></tr></thead>
-      <tbody>${users.map(u => {
-        const created = new Date(u.created_at).toLocaleString("zh-CN");
-        return `<tr>
-          <td>${escHtml(u.username)}</td>
-          <td>${u.role === "admin" ? '<span style="color:var(--purple)">管理员</span>' : '用户'}</td>
-          <td style="font-size:12px">${created}</td>
-          <td class="actions">
-            ${u.role !== "admin" ? `<button onclick="adminPromoteUser('${u.username}','admin')">设为管理员</button>` : `<button class="danger" onclick="adminPromoteUser('${u.username}','user')">取消管理员</button>`}
-          </td>
-        </tr>`}).join("")}</tbody></table>`;
+    body.innerHTML = `<table class="admin-table"><thead><tr>
+      <th>用户名</th><th>角色</th><th>会员</th><th>AI次数</th><th>注册时间</th><th>操作</th>
+    </tr></thead>
+    <tbody>${users.map(u => {
+      const created = new Date(u.created_at).toLocaleString("zh-CN");
+      const roleLabel = u.role === "admin" ? '<span style="color:var(--purple);font-weight:600">管理员</span>' : '<span style="color:var(--text2)">用户</span>';
+      const memLabel = u.member_level ? `<span style="color:var(--accent);font-weight:600">${u.member_level==='year'?'年费':u.member_level==='month'?'月费':'周费'}</span>` : '<span style="color:var(--text3)">-</span>';
+      const trialsUsed = u.ai_trials_used || 0;
+      const isSelf = (u.username === acctUsername);
+      return `<tr>
+        <td>${escHtml(u.username)}${isSelf ? ' <span style="font-size:10px;color:var(--text3)">(你)</span>' : ''}</td>
+        <td>${roleLabel}</td>
+        <td>${memLabel}</td>
+        <td>${trialsUsed}/3</td>
+        <td style="font-size:12px">${created}</td>
+        <td class="actions">
+          ${u.role !== "admin"
+            ? `<button onclick="adminPromoteUser('${u.username}','admin')">提为管理员</button>`
+            : !isSelf ? `<button class="danger" onclick="adminPromoteUser('${u.username}','user')">取消管理员</button>` : ''}
+          <button onclick="adminSetMembership('${u.username}')">会员</button>
+          <button onclick="adminResetTrials('${u.username}')">重置AI</button>
+          ${!isSelf ? `<button class="danger" onclick="adminDeleteUser('${u.username}')">删除</button>` : ''}
+        </td>
+      </tr>`}).join("")}</tbody></table>`;
   } catch(e) { body.innerHTML = `<p style="color:var(--red)">加载失败</p>`; }
 }
 
@@ -2204,6 +2218,87 @@ async function adminPromoteUser(username, role) {
     if (resp.ok && result.success) loadAdminUsers();
     else alert("操作失败: " + (result.error || "未知错误"));
   } catch(e) { alert("操作失败: 网络错误"); }
+}
+
+async function adminDeleteUser(username) {
+  if (!confirm(`确定永久删除用户 "${username}"？\n此操作不可撤销，将清除该用户的所有数据。`)) return;
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/users?username=" + encodeURIComponent(username), { method: "DELETE" });
+    const result = await resp.json();
+    if (resp.ok && result.success) loadAdminUsers();
+    else alert("删除失败: " + (result.error || "未知错误"));
+  } catch(e) { alert("删除失败: 网络错误"); }
+}
+
+async function adminResetTrials(username) {
+  if (!confirm(`确定重置 "${username}" 的 AI 试用次数？`)) return;
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/users", {
+      method: "PUT", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({username, ai_trials_used: 0})
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) loadAdminUsers();
+    else alert("重置失败: " + (result.error || "未知错误"));
+  } catch(e) { alert("重置失败: 网络错误"); }
+}
+
+async function adminSetMembership(username) {
+  const level = prompt("会员等级:\n可选: week (7天) / month (30天) / year (365天)", "month");
+  if (!level || !["week","month","year"].includes(level)) { alert("无效的会员等级"); return; }
+  const daysMap = {week:7, month:30, year:365};
+  const days = daysMap[level];
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/users", {
+      method: "PUT", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({username, membership_level: level, membership_days: days})
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) loadAdminUsers();
+    else alert("设置失败: " + (result.error || "未知错误"));
+  } catch(e) { alert("设置失败: 网络错误"); }
+}
+
+// --- Admin Orders ---
+async function loadAdminOrders() {
+  const body = document.getElementById("adminBody");
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/orders");
+    const data = await resp.json();
+    if (!resp.ok) { body.innerHTML = `<p style="color:var(--red)">加载失败: ${data.error}</p>`; return; }
+    const orders = data.orders || [];
+    const planMap = {week:'7天',month:'30天',year:'365天'};
+    if (orders.length === 0) { body.innerHTML = '<p style="color:var(--text2)">暂无订单</p>'; return; }
+    body.innerHTML = `<table class="admin-table"><thead><tr>
+      <th>订单号</th><th>用户</th><th>套餐</th><th>金额</th><th>状态</th><th>创建时间</th><th>操作</th>
+    </tr></thead>
+    <tbody>${orders.map(o => {
+      const created = new Date(o.created_at).toLocaleString("zh-CN");
+      return `<tr>
+        <td style="font-size:11px;font-family:var(--mono)">${o.out_trade_no}</td>
+        <td>${escHtml(o.username)}</td>
+        <td>${planMap[o.plan] || o.plan}</td>
+        <td>¥${o.amount}</td>
+        <td>${o.paid ? '<span style="color:var(--green);font-weight:600">已支付</span>' : '<span style="color:var(--red);font-weight:600">未支付</span>'}</td>
+        <td style="font-size:12px">${created}</td>
+        <td class="actions">
+          ${!o.paid ? `<button class="primary" onclick="adminMarkPaid('${o.out_trade_no}')">手动激活</button>` : ''}
+        </td>
+      </tr>`}).join("")}</tbody></table>`;
+  } catch(e) { body.innerHTML = `<p style="color:var(--red)">加载失败</p>`; }
+}
+
+async function adminMarkPaid(tradeNo) {
+  if (!confirm("确定手动激活该订单并开通对应会员？")) return;
+  try {
+    const resp = await adminAuthFetch(AUTH_URL + "/api/admin/mark-paid", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({out_trade_no: tradeNo})
+    });
+    const result = await resp.json();
+    if (resp.ok && result.success) { loadAdminOrders(); alert("激活成功！会员已开通"); }
+    else alert("激活失败: " + (result.error || "未知错误"));
+  } catch(e) { alert("激活失败: 网络错误"); }
 }
 
 // ═══ Init ═══
@@ -2259,6 +2354,7 @@ async function adminPromoteUser(username, role) {
       <button class="admin-tab active" data-admin-tab="problems" onclick="switchAdminTab('problems')">题目管理</button>
       <button class="admin-tab" data-admin-tab="contests" onclick="switchAdminTab('contests')">比赛管理</button>
       <button class="admin-tab" data-admin-tab="users" onclick="switchAdminTab('users')">用户管理</button>
+      <button class="admin-tab" data-admin-tab="orders" onclick="switchAdminTab('orders')">订单管理</button>
     </div>
     <div class="admin-body" id="adminBody"></div>
   </div>

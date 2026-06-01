@@ -200,10 +200,40 @@ export async function setUserRole(db, username, role) {
 }
 
 export async function listUsers(db) {
+  const now = Math.floor(Date.now() / 1000);
   const { results } = await db.prepare(
-    'SELECT username, role, created_at FROM accounts ORDER BY created_at DESC'
-  ).all();
-  return results || [];
+    `SELECT a.username, a.role, a.ai_trials_used, a.created_at,
+            m.level as member_level, m.expire_at as member_expire
+     FROM accounts a
+     LEFT JOIN memberships m ON a.username = m.username AND m.expire_at > ?
+     ORDER BY a.created_at DESC`
+  ).bind(now).all();
+  return (results || []).map(r => ({
+    ...r,
+    member_level: r.member_expire ? r.member_level : null,
+    member_expire: r.member_expire || null
+  }));
+}
+
+export async function deleteUser(db, username, currentAdmin) {
+  const acct = await db.prepare('SELECT role FROM accounts WHERE username = ?').bind(username).first();
+  if (!acct) return { error: '用户不存在' };
+  // Don't allow deleting yourself
+  if (username === currentAdmin) return { error: '不能删除自己' };
+  // Check if this is the only admin
+  if (acct.role === 'admin') {
+    const { count } = await db.prepare(
+      "SELECT COUNT(*) as count FROM accounts WHERE role = 'admin'"
+    ).first();
+    if (count <= 1) return { error: '不能删除唯一的管理员' };
+  }
+  await db.prepare('DELETE FROM sessions WHERE username = ?').bind(username).run();
+  await db.prepare('DELETE FROM memberships WHERE username = ?').bind(username).run();
+  await db.prepare('DELETE FROM orders WHERE username = ?').bind(username).run();
+  await db.prepare('DELETE FROM user_progress WHERE username = ?').bind(username).run();
+  await db.prepare('DELETE FROM contest_submissions WHERE username = ?').bind(username).run();
+  await db.prepare('DELETE FROM accounts WHERE username = ?').bind(username).run();
+  return { success: true };
 }
 
 // --- Problem helpers ---

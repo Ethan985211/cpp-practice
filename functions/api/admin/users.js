@@ -1,6 +1,6 @@
 // Admin Users API — GET list users, PUT set role/membership/ai_trials
 import { requireAdmin } from '../../_utils/admin.js';
-import { listUsers, setUserRole, activateMembership } from '../../_utils/db.js';
+import { listUsers, setUserRole, activateMembership, deleteUser } from '../../_utils/db.js';
 import { addCORS } from '../../_utils/cors.js';
 
 function ok(data, request) { return addCORS(Response.json(data), request); }
@@ -41,12 +41,26 @@ export async function onRequestPut({ env, request }) {
   }
 }
 
+export async function onRequestDelete({ env, request }) {
+  try {
+    const { db, username: adminUser } = await requireAdmin(env, request);
+    const url = new URL(request.url);
+    const username = url.searchParams.get('username');
+    if (!username) return err('缺少用户名', 400, request);
+    const result = await deleteUser(db, username, adminUser);
+    if (result.error) return err(result.error, 404, request);
+    return ok({ success: true }, request);
+  } catch (e) {
+    return err(e.message, e.status || 500, request);
+  }
+}
+
 export async function onRequestOptions() {
   return new Response(null, {
     status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET,PUT,OPTIONS',
+      'Access-Control-Allow-Methods': 'GET,PUT,DELETE,OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400',
     }
