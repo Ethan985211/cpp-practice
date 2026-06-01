@@ -238,7 +238,7 @@ export async function deleteUser(db, username, currentAdmin) {
 
 // --- Problem helpers ---
 
-export async function listProblems(db, publishedOnly = false) {
+export async function listProblems(db, publishedOnly = true) {
   let sql = 'SELECT * FROM problems';
   if (publishedOnly) sql += ' WHERE is_published = 1';
   sql += ' ORDER BY id DESC';
@@ -254,16 +254,17 @@ export async function getProblem(db, id) {
 
 export async function createProblem(db, data, username) {
   const now = Date.now();
+  const isPublished = data.is_published !== undefined ? data.is_published : 0;
   const info = await db.prepare(
     `INSERT INTO problems (title, difficulty, category, description, input_desc, output_desc,
-     sample_input, sample_output, hint, solution_code, solution_text, test_cases, created_by, created_at, updated_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+     sample_input, sample_output, hint, solution_code, solution_text, test_cases, is_published, created_by, created_at, updated_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
   ).bind(
     data.title, data.difficulty || 1, data.category || 'general',
     data.description || '', data.input_desc || '', data.output_desc || '',
     data.sample_input || '', data.sample_output || '', data.hint || '',
     data.solution_code || '', data.solution_text || '',
-    JSON.stringify(data.test_cases || []), username, now, now
+    JSON.stringify(data.test_cases || []), isPublished, username, now, now
   ).run();
   return info.meta?.last_row_id || 0;
 }

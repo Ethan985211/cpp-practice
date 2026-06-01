@@ -16,7 +16,7 @@ export async function onRequestGet({ env, request }) {
       if (!p) return err('题目不存在', 404, request);
       return ok({ problem: p }, request);
     }
-    const problems = await listProblems(db);
+    const problems = await listProblems(db, false);
     return ok({ problems }, request);
   } catch (e) {
     return err(e.message, e.status || 500, request);
