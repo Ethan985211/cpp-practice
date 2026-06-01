@@ -913,11 +913,14 @@ async function createMembershipOrder() {
     });
     const data = await resp.json();
     if (data.success && data.pay_url) {
-      msg.innerHTML = `<span style="color:var(--green)">订单已创建，正在跳转支付...</span>`;
+      msg.innerHTML = `<span style="color:var(--green)">支付窗口已打开，支付完成后自动激活会员...</span>`;
       // Save order ID so we can check status when user returns
       localStorage.setItem("cpp-pending-order", data.out_trade_no);
-      // Navigate to payment page
-      location.href = data.pay_url;
+      // Open payment in new window, keep our site open for polling
+      const payWin = window.open(data.pay_url, '_blank');
+      pollOrderStatus(data.out_trade_no);
+      // Focus back on payment window so user sees it
+      if (payWin) payWin.focus();
     } else {
       msg.textContent = data.error || "创建订单失败";
     }
