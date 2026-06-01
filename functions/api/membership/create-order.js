@@ -5,7 +5,7 @@ import { addCORS } from '../../_utils/cors.js';
 
 const EPAY_PID = '11898';
 const EPAY_KEY = 'a3NcrTlnT1anCcQGyAWb';
-const EPAY_SUBMIT_URL = 'https://wx5.akwl.net/xpay/epay/submit.php';
+const EPAY_SUBMIT_URL = 'https://mzf.mapay.cc/submit.php';
 const NOTIFY_URL = 'https://cpp-practice.pages.dev/api/epay/notify';
 const RETURN_URL = 'https://cpp-practice.pages.dev';
 
