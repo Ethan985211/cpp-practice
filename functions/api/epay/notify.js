@@ -124,6 +124,16 @@ function md5Pure(string) {
   return rhex(md51(string)[0]) + rhex(md51(string)[1]) + rhex(md51(string)[2]) + rhex(md51(string)[3]);
 }
 
+// MD5 helper that properly handles UTF-8 (md5Pure is ASCII-only)
+function md5Utf8(str) {
+  const utf8 = new TextEncoder().encode(str);
+  let byteStr = '';
+  for (let i = 0; i < utf8.length; i++) {
+    byteStr += String.fromCharCode(utf8[i]);
+  }
+  return md5Pure(byteStr);
+}
+
 export async function onRequestPost({ env, request }) {
   return handleNotify(env, request, false);
 }
@@ -160,7 +170,7 @@ async function handleNotify(env, request, isGet) {
   const receivedSign = params.sign;
   const keys = Object.keys(params).filter(k => k !== 'sign' && k !== 'sign_type').sort();
   const signStr = keys.map(k => k + '=' + (params[k] || '')).join('&') + EPAY_KEY;
-  const computedSign = md5Pure(signStr);
+  const computedSign = md5Utf8(signStr);
 
   if (receivedSign !== computedSign) {
     return new Response('sign error', { status: 400 });
