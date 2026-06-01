@@ -909,12 +909,14 @@ async function createMembershipOrder() {
     const resp = await fetch(AUTH_URL + "/api/membership/create-order", {
       method: "POST",
       headers: {"Content-Type":"application/json","Authorization":"Bearer "+acctToken},
-      body: JSON.stringify({plan_id:_selectedPlan, type:_payMethod})
+      body: JSON.stringify({plan_id:_selectedPlan, type:_payMethod, return_url: location.origin})
     });
     const data = await resp.json();
     if (data.success && data.pay_url) {
       msg.innerHTML = `<span style="color:var(--green)">订单已创建，正在跳转支付...</span>`;
-      // Navigate to payment page (return_url brings user back after payment)
+      // Save order ID so we can check status when user returns
+      localStorage.setItem("cpp-pending-order", data.out_trade_no);
+      // Navigate to payment page
       location.href = data.pay_url;
     } else {
       msg.textContent = data.error || "创建订单失败";
@@ -928,7 +930,6 @@ async function createMembershipOrder() {
 }
 
 async function pollOrderStatus(outTradeNo) {
-  const msg = document.getElementById("memberPayMsg");
   let attempts = 0;
   const poll = setInterval(async () => {
     attempts++;
@@ -941,15 +942,38 @@ async function pollOrderStatus(outTradeNo) {
       const data = await resp.json();
       if (data.paid) {
         clearInterval(poll);
-        acctMember = true;
-        acctMembershipInfo = data.membership || {};
+        localStorage.removeItem("cpp-pending-order");
+        // Refresh membership from server
+        const userResp = await fetch(AUTH_URL + "/api/user", {
+          headers: {"Authorization":"Bearer "+acctToken}
+        });
+        if (userResp.ok) {
+          const userData = await userResp.json();
+          if (userData.membership && userData.membership.member) {
+            acctMember = true;
+            acctMembershipInfo = userData.membership;
+          }
+        } else {
+          acctMember = true;
+        }
         updateAcctUI();
-        msg.innerHTML = `<span style="color:var(--green)">支付成功！会员已激活</span>`;
-        setTimeout(() => closeMembershipModal(), 2000);
+        // Show message if modal is open
+        const msg = document.getElementById("memberPayMsg");
+        if (msg && document.getElementById("memberModalOverlay").classList.contains("open")) {
+          msg.innerHTML = `<span style="color:var(--green)">支付成功！会员已激活</span>`;
+          setTimeout(() => closeMembershipModal(), 2000);
+        }
       }
     } catch {}
-    if (attempts > 60) { clearInterval(poll); msg.textContent = "支付状态检查超时，如已支付请刷新页面"; }
+    if (attempts > 60) { clearInterval(poll); localStorage.removeItem("cpp-pending-order"); }
   }, 3000);
+}
+
+async function checkPendingOrder() {
+  const pendingOrder = localStorage.getItem("cpp-pending-order");
+  if (pendingOrder && acctLoggedIn && acctToken) {
+    pollOrderStatus(pendingOrder);
+  }
 }
 
 // ═══ Knowledge Map ═══
@@ -2099,7 +2123,10 @@ async function adminPromoteUser(username, role) {
   // Try to restore session from saved token
   if (acctToken) {
     const ok = await loadUserFromServer();
-    if (ok) await syncProgressFromServer();
+    if (ok) {
+      await syncProgressFromServer();
+      checkPendingOrder();
+    }
   }
   buildDiffFilter();
   buildCatFilter();

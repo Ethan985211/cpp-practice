@@ -166,8 +166,9 @@ export async function onRequestPost({ env, request }) {
 
   let body;
   try { body = await request.json(); } catch { return addCORS(Response.json({ error: '无效请求' }, { status: 400 }), request); }
-  const { plan_id, type } = body;
+  const { plan_id, type, return_url } = body;
   const payType = (type === 'wxpay') ? 'wxpay' : 'alipay';
+  const returnUrl = return_url || RETURN_URL;
 
   const plan = PLAN_MAP[plan_id];
   if (!plan) return addCORS(Response.json({ error: '无效的套餐' }, { status: 400 }), request);
@@ -181,7 +182,7 @@ export async function onRequestPost({ env, request }) {
     type: payType,
     out_trade_no: outTradeNo,
     notify_url: NOTIFY_URL,
-    return_url: RETURN_URL,
+    return_url: returnUrl,
     name: plan.name,
     money: plan.price
   };
