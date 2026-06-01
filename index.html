@@ -1264,7 +1264,7 @@ function openProblem(id) {
           <h3>&#x2328;&#xfe0f; 代码编辑器</h3>
           <div class="judge-editor-wrap">
             <div class="judge-ln" id="judgeLn"></div>
-            <textarea class="judge-editor" id="judgeEditor" placeholder="在此编写 C++ 代码...&#10;或点击下方按钮加载题解代码" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncLineScroll()"></textarea>
+            <textarea class="judge-editor" id="judgeEditor" placeholder="在此编写 C++ 代码...&#10;或点击下方按钮加载题解代码" spellcheck="false" oninput="updateLineNumbers()" onscroll="syncLineScroll()" onkeydown="handleEditorKeydown(event)"></textarea>
           </div>
           <div class="judge-toolbar">
             <button class="judge-submit-btn" onclick="submitCode(${p.id})">&#x25b6; 提交运行</button>
@@ -1376,6 +1376,56 @@ function syncLineScroll() {
   const ln = document.getElementById("judgeLn");
   if (!editor || !ln) return;
   ln.scrollTop = editor.scrollTop;
+}
+
+function handleEditorKeydown(e) {
+  const ta = e.target;
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const val = ta.value;
+
+  // Tab: insert 4-space indent, Shift+Tab: remove indent
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    if (e.shiftKey) {
+      const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+      const line = val.substring(lineStart, start);
+      const match = line.match(/^ {1,4}|^\t/);
+      if (!match) return;
+      const remove = match[0].length;
+      ta.value = val.substring(0, lineStart) + line.substring(remove) + val.substring(start);
+      ta.selectionStart = ta.selectionEnd = start - Math.min(remove, start - lineStart);
+    } else if (start !== end) {
+      const before = val.substring(0, start);
+      const sel = val.substring(start, end);
+      const after = val.substring(end);
+      const indented = sel.replace(/\n/g, '\n    ');
+      ta.value = before + '    ' + indented + after;
+      ta.selectionStart = start + 4;
+      ta.selectionEnd = end + 4 * (sel.split('\n').length);
+    } else {
+      ta.value = val.substring(0, start) + '    ' + val.substring(end);
+      ta.selectionStart = ta.selectionEnd = start + 4;
+    }
+    updateLineNumbers();
+    return;
+  }
+
+  // Enter: keep indentation from previous line, add extra level after {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+    const currentLine = val.substring(lineStart, start);
+    const indent = currentLine.match(/^(\s*)/)[1];
+    let extra = '';
+    if (currentLine.trimEnd().endsWith('{')) {
+      extra = '    ';
+    }
+    const insertion = '\n' + indent + extra;
+    ta.value = val.substring(0, start) + insertion + val.substring(start);
+    ta.selectionStart = ta.selectionEnd = start + insertion.length;
+    updateLineNumbers();
+  }
 }
 
 function loadSolution(pid) {
