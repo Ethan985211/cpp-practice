@@ -108,7 +108,16 @@ def main():
             continue
 
         solution_code = detail.get("solution_code", "")
-        test_cases = detail.get("test_cases", [])
+        test_cases_raw = detail.get("test_cases", [])
+
+        # Map D1 test_cases (output) to validate_problem expected format
+        test_cases = []
+        for tc in test_cases_raw:
+            test_cases.append({
+                "input": tc.get("input", ""),
+                "expected": tc.get("output", tc.get("expected", "")),
+                "type": tc.get("type", "sample")
+            })
 
         if not solution_code:
             print(f"  ✗ 无题解代码，跳过")
