@@ -70,7 +70,7 @@ export async function onRequestPost({ env, request }) {
     sample_input: practice.sample_input || '',
     sample_output: practice.sample_output || '',
     hint,
-    solution_code: '',
+    solution_code: practice.solution_code || '',
     solution_text: hint,
     test_cases: testCases
   }, 'ai-' + payload.username);
@@ -95,7 +95,7 @@ export async function onRequestPost({ env, request }) {
     sampleInput: practice.sample_input || '',
     sampleOutput: practice.sample_output || '',
     constraints: practice.constraints || '',
-    cppCode: '',
+    cppCode: practice.solution_code || '',
     solution: hint,
     solution_hint: hint,
     testCasesCount: testCases.length
