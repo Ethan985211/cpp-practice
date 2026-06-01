@@ -913,14 +913,19 @@ async function createMembershipOrder() {
     });
     const data = await resp.json();
     if (data.success && data.pay_url) {
-      msg.innerHTML = `<span style="color:var(--green)">支付窗口已打开，支付完成后自动激活会员...</span>`;
       // Save order ID so we can check status when user returns
       localStorage.setItem("cpp-pending-order", data.out_trade_no);
-      // Open payment in new window, keep our site open for polling
+      // Try new window first, fall back to navigation if blocked
       const payWin = window.open(data.pay_url, '_blank');
-      pollOrderStatus(data.out_trade_no);
-      // Focus back on payment window so user sees it
-      if (payWin) payWin.focus();
+      if (payWin) {
+        msg.innerHTML = `<span style="color:var(--green)">支付窗口已打开，支付完成后自动激活会员...</span>`;
+        pollOrderStatus(data.out_trade_no);
+        payWin.focus();
+      } else {
+        // Popup blocked — navigate the whole page
+        msg.innerHTML = `<span style="color:var(--green)">正在跳转支付页面...</span>`;
+        location.href = data.pay_url;
+      }
     } else {
       msg.textContent = data.error || "创建订单失败";
     }
@@ -934,9 +939,14 @@ async function createMembershipOrder() {
 
 async function pollOrderStatus(outTradeNo) {
   let attempts = 0;
+  const msg = document.getElementById("memberPayMsg");
   const poll = setInterval(async () => {
     attempts++;
     try {
+      // Show checking progress
+      if (msg && document.getElementById("memberModalOverlay").classList.contains("open")) {
+        msg.innerHTML = `<span style="color:var(--accent)">正在确认支付状态 (${attempts}/60)...</span>`;
+      }
       const resp = await fetch(AUTH_URL + "/api/orders/check", {
         method: "POST",
         headers: {"Content-Type":"application/json","Authorization":"Bearer "+acctToken},
@@ -960,16 +970,58 @@ async function pollOrderStatus(outTradeNo) {
           acctMember = true;
         }
         updateAcctUI();
-        // Show message if modal is open
-        const msg = document.getElementById("memberPayMsg");
-        if (msg && document.getElementById("memberModalOverlay").classList.contains("open")) {
+        // Refresh modal plans to show updated membership
+        renderMemberPlans();
+        // Show success and close modal
+        if (msg) {
           msg.innerHTML = `<span style="color:var(--green)">支付成功！会员已激活</span>`;
-          setTimeout(() => closeMembershipModal(), 2000);
         }
+        setTimeout(() => { closeMembershipModal(); if (msg) msg.textContent = ''; }, 2000);
       }
     } catch {}
-    if (attempts > 60) { clearInterval(poll); localStorage.removeItem("cpp-pending-order"); }
+    if (attempts > 60) {
+      clearInterval(poll);
+      localStorage.removeItem("cpp-pending-order");
+      if (msg) {
+        msg.innerHTML = `<span style="color:var(--red)">支付确认超时</span>
+          <button class="member-btn" style="margin-top:8px" onclick="manualCheckOrder()">手动检查支付状态</button>`;
+      }
+    }
   }, 3000);
+}
+
+// Parse epay return URL params (trade_status=TRADE_SUCCESS&out_trade_no=...)
+function handlePaymentReturn() {
+  const params = new URLSearchParams(location.search);
+  const outTradeNo = params.get('out_trade_no');
+  const tradeStatus = params.get('trade_status');
+  if (!outTradeNo) return;
+  // Save order ID so checkPendingOrder can pick it up
+  localStorage.setItem("cpp-pending-order", outTradeNo);
+  // Clean URL params without reload
+  if (history.replaceState) {
+    history.replaceState(null, '', location.pathname + location.hash);
+  }
+  // If epay confirms success, show checking message immediately
+  if (tradeStatus === 'TRADE_SUCCESS') {
+    setTimeout(() => {
+      const overlay = document.getElementById("memberModalOverlay");
+      const msgEl = document.getElementById("memberPayMsg");
+      if (overlay) overlay.classList.add("open");
+      if (msgEl) msgEl.innerHTML = '<span style="color:var(--accent)">支付完成，正在确认订单...</span>';
+    }, 300);
+  }
+}
+
+// Manual order check (retry button)
+function manualCheckOrder() {
+  const pendingOrder = localStorage.getItem("cpp-pending-order");
+  if (!pendingOrder || !acctLoggedIn) {
+    const msg = document.getElementById("memberPayMsg");
+    if (msg) msg.textContent = "没有待确认的订单，请重新下单";
+    return;
+  }
+  pollOrderStatus(pendingOrder);
 }
 
 async function checkPendingOrder() {
@@ -2123,6 +2175,8 @@ async function adminPromoteUser(username, role) {
 
 // ═══ Init ═══
 (async function init() {
+  // Parse payment return params BEFORE login check (saves order ID to localStorage)
+  handlePaymentReturn();
   // Try to restore session from saved token
   if (acctToken) {
     const ok = await loadUserFromServer();
