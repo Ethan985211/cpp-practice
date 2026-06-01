@@ -1,6 +1,6 @@
 // POST /api/login
 import { sign } from '../_utils/jwt.js';
-import { getDB, initDB, getAccount, getMembership } from '../_utils/db.js';
+import { getDB, initDB, getAccount, getMembership, isAdmin } from '../_utils/db.js';
 import { addCORS } from '../_utils/cors.js';
 
 export async function onRequestPost({ env, request }) {
@@ -30,11 +30,12 @@ export async function onRequestPost({ env, request }) {
     }
 
     const membership = await getMembership(db, username.trim());
-    const token = await sign({ username: username.trim(), role: account.role || 'user', member: membership.member, level: membership.level, expire_at: membership.expire_at });
+    const admin = await isAdmin(db, username.trim(), env);
+    const token = await sign({ username: username.trim(), role: admin ? 'admin' : 'user', member: membership.member, level: membership.level, expire_at: membership.expire_at });
 
     return addCORS(Response.json({
       success: true, token, username: username.trim(),
-      role: account.role || 'user',
+      role: admin ? 'admin' : 'user',
       membership
     }), request);
   } catch (e) {
