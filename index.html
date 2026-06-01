@@ -1227,13 +1227,13 @@ function openProblem(id) {
 
         <div class="modal-section">
           <h3>&#x1f4dd; 题目描述</h3>
-          <div class="problem-desc">${p.description||""}</div>
+          <div class="problem-desc">${escHtml(p.description||"")}</div>
         </div>
-        ${p.inputFormat ? `<div class="modal-section"><h3>&#x2b07;&#xfe0f; 输入格式</h3><div class="problem-desc">${p.inputFormat}</div></div>` : ""}
-        ${p.outputFormat ? `<div class="modal-section"><h3>&#x2b06;&#xfe0f; 输出格式</h3><div class="problem-desc">${p.outputFormat}</div></div>` : ""}
-        <div class="modal-section"><h3>&#x1f4e5; 输入样例</h3><div class="io-block"><pre>${p.sampleInput||""}</pre></div></div>
-        <div class="modal-section"><h3>&#x1f4e4; 输出样例</h3><div class="io-block"><pre>${p.sampleOutput||""}</pre></div></div>
-        ${p.constraints ? `<div class="modal-section"><h3>&#x26a0;&#xfe0f; 约束条件</h3><div class="problem-desc">${p.constraints}</div></div>` : ""}
+        ${p.inputFormat ? `<div class="modal-section"><h3>&#x2b07;&#xfe0f; 输入格式</h3><div class="problem-desc">${escHtml(p.inputFormat)}</div></div>` : ""}
+        ${p.outputFormat ? `<div class="modal-section"><h3>&#x2b06;&#xfe0f; 输出格式</h3><div class="problem-desc">${escHtml(p.outputFormat)}</div></div>` : ""}
+        <div class="modal-section"><h3>&#x1f4e5; 输入样例</h3><div class="io-block"><pre>${escHtml(p.sampleInput||"")}</pre></div></div>
+        <div class="modal-section"><h3>&#x1f4e4; 输出样例</h3><div class="io-block"><pre>${escHtml(p.sampleOutput||"")}</pre></div></div>
+        ${p.constraints ? `<div class="modal-section"><h3>&#x26a0;&#xfe0f; 约束条件</h3><div class="problem-desc">${escHtml(p.constraints)}</div></div>` : ""}
 
         <div class="modal-actions">
           ${curStatus!=='unstarted' ? `<button class="modal-act-btn" onclick="markStatus(${p.id},'unstarted')">&#x21a9;&#xfe0f; 重置</button>` : ""}
@@ -1254,7 +1254,7 @@ function openProblem(id) {
           </div>` : ""}
           ${p.solution ? `
           <h3>思路解析</h3>
-          <div class="explanation">${p.solution}</div>` : ""}
+          <div class="explanation">${escHtml(p.solution)}</div>` : ""}
         </div>
       </div>` : ""}
 
