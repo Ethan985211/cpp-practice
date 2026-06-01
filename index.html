@@ -1566,10 +1566,13 @@ async function requestAiAnalysis(problemId, verdict, verdictLabel) {
   try {
     const headers = {"Content-Type": "application/json"};
     if (acctToken) headers["Authorization"] = "Bearer " + acctToken;
+    const curProblem = allProblems.find(p => String(p.id) === String(problemId));
+    const problemTags = curProblem ? curProblem.tags : [];
+    const problemDifficulty = curProblem ? curProblem.difficulty : '中等';
     const resp = await fetch(AUTH_URL + "/api/ai-analyze", {
       method: "POST",
       headers,
-      body: JSON.stringify({code, problem_id: problemId, verdict, verdict_label: verdictLabel, results})
+      body: JSON.stringify({code, problem_id: problemId, verdict, verdict_label: verdictLabel, results, problem_tags: problemTags, problem_difficulty: problemDifficulty})
     });
     if (resp.status === 401) {
       panel.innerHTML = `<div class="ai-panel-section"><h4>需要登录</h4><div class="ai-diagnosis">AI 分析功能仅限登录用户使用。<br><button class="auth-submit" style="margin-top:12px;width:auto;padding:8px 20px" onclick="showAuthModal()">立即登录</button></div></div>`;
@@ -1619,9 +1622,47 @@ function renderAnalysis(data) {
     html += `<div class="ai-tip">${escHtml(a.tip)}</div>`;
   }
 
+  // Store analysis data for save/goto
+  _lastAnalysisData = a;
+
+  // Add recommended problems to allProblems so they can be opened
+  if (data.recommended_problems && data.recommended_problems.length > 0) {
+    const existingIds = new Set(allProblems.map(p => p.id));
+    data.recommended_problems.forEach(p => {
+      if (!existingIds.has(p.id)) {
+        allProblems.push(p);
+        const si = stageInfo.find(s => s.id === p.stage);
+        if (si) {
+          si.count++;
+        } else if (p.stage) {
+          stageInfo.push({id: p.stage, name: p.stageName || '综合练习', count: 1});
+          stageInfo.sort((a,b) => a.id - b.id);
+        }
+      }
+    });
+  }
+
+  // Show recommended existing problems
+  if (data.recommended_problems && data.recommended_problems.length > 0) {
+    const reason = a.recommendation_reason || '以下题目适合你当前的学习需求';
+    html += `<div class="ai-panel-section"><h4>推荐配套练习</h4><div class="ai-tip" style="margin-bottom:10px">${escHtml(reason)}</div>`;
+    data.recommended_problems.forEach(p => {
+      html += `<div class="ai-practice-card" style="cursor:pointer" onclick="openProblem(${p.id});closeModal()">
+        <h4 style="display:flex;justify-content:space-between;align-items:center">${escHtml(p.title)}<span style="font-size:12px;color:var(--text2)">ID:${p.id}</span></h4>
+        <div class="ai-practice-meta"><span>难度: ${escHtml(p.difficulty||'中等')}</span>`;
+      if (p.tags) html += `<span>标签: ${escHtml(p.tags.join(', '))}</span>`;
+      html += `</div>`;
+      if (p.description) html += `<div class="ai-practice-desc">${escHtml(p.description.substring(0,200))}</div>`;
+      if (p.solution_hint) html += `<div class="ai-tip">提示: ${escHtml(p.solution_hint)}</div>`;
+      html += `<button class="ai-practice-btn" style="margin-top:8px" onclick="event.stopPropagation();openProblem(${p.id});closeModal()">开始练习</button>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Show newly generated practice problem
   if (a && a.practice && a.practice.title) {
     const p = a.practice;
-    _lastAnalysisData = a;
     html += `<div class="ai-practice-card">`;
     html += `<h4>${escHtml(p.title)}</h4>`;
     html += `<div class="ai-practice-meta"><span>难度: ${escHtml(p.difficulty||'中等')}</span>`;
@@ -1630,10 +1671,10 @@ function renderAnalysis(data) {
     if (p.description) html += `<div class="ai-practice-desc">${escHtml(p.description.substring(0,300))}</div>`;
     if (p.solution_hint) html += `<div class="ai-tip">提示: ${escHtml(p.solution_hint)}</div>`;
     html += `<div class="ai-practice-actions">`;
-    html += `<button class="ai-practice-btn" onclick="goToGeneratedProblem()">创建练习题并跳转</button>`;
+    html += `<button class="ai-practice-btn" onclick="goToGeneratedProblem()">保存并开始练习</button>`;
     html += `</div></div>`;
   } else if (a && a.practice) {
-    _lastAnalysisData = a;
+    // practice exists but no title — still store reference
   }
 
   panel.innerHTML = html;

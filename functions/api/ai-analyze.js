@@ -1,10 +1,28 @@
 // POST /api/ai-analyze — AI code analysis (member or trial)
 import { verify } from '../_utils/jwt.js';
-import { getDB, initDB, getMembership, useAiTrial, getAiTrials } from '../_utils/db.js';
+import { getDB, initDB, getMembership, useAiTrial, getAiTrials, listProblems } from '../_utils/db.js';
 import { addCORS } from '../_utils/cors.js';
 
 const AI_TRIAL_LIMIT = 3;
 const DEEPSEEK_API = 'https://api.deepseek.com/v1/chat/completions';
+
+// Query D1 for problems matching given tags
+async function findMatchingProblems(db, tags, maxResults = 5) {
+  if (!tags || tags.length === 0) return [];
+  // Build LIKE conditions for each tag
+  const conditions = tags.map(() => "category LIKE ?").join(" OR ");
+  const params = tags.map(t => `%${t}%`);
+  const { results } = await db.prepare(
+    `SELECT id, title, difficulty, category, description FROM problems WHERE is_published = 1 AND (${conditions}) ORDER BY id DESC LIMIT ?`
+  ).bind(...params, maxResults).all();
+  return (results || []).map(r => ({
+    id: r.id,
+    title: r.title,
+    difficulty: ['', '简单', '中等', '困难'][r.difficulty] || '中等',
+    category: r.category,
+    description: (r.description || '').slice(0, 120)
+  }));
+}
 
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
@@ -40,10 +58,13 @@ export async function onRequestPost({ env, request }) {
   try { body = await request.json(); } catch {
     return addCORS(Response.json({ error: '无效请求' }, { status: 400 }), request);
   }
-  const { code, problem_id, verdict, verdict_label, results } = body;
+  const { code, problem_id, verdict, verdict_label, results, problem_tags, problem_difficulty } = body;
   if (!code || problem_id === undefined) {
     return addCORS(Response.json({ error: '缺少代码或题目ID' }, { status: 400 }), request);
   }
+
+  // Query existing problems matching the same tags/category
+  const existingProbs = await findMatchingProblems(db, problem_tags || [], 5);
 
   // Build results summary
   let resultsText = '';
@@ -56,9 +77,11 @@ export async function onRequestPost({ env, request }) {
     resultsText += '\n';
   });
 
-  const prompt = `你是C++算法教练。分析以下提交，并为学生生成一道**原创**配套练习题。
+  const prompt = `你是C++算法教练。分析以下提交，并为学生推荐练习。
 
 【题目ID】${problem_id}
+【原题难度】${problem_difficulty || '中等'}
+【原题标签】${(problem_tags || []).join(', ')}
 【判题结果】${verdict_label || verdict} (${verdict})
 【测试详情】
 ${resultsText}
@@ -67,13 +90,20 @@ ${resultsText}
 ${code.slice(0, 3000)}
 \`\`\`
 
-请分析并返回JSON:
+【题库已有相关练习题】（共${existingProbs.length}道）
+${existingProbs.map(p => `- [ID:${p.id}] ${p.title} | 难度:${p.difficulty} | 标签:${p.category} | ${p.description}`).join('\n') || '（题库暂无相关题）'}
+
+请判断：上述题库已有题是否足以覆盖学生的薄弱知识点？如果足够，直接推荐已有题；如果不够，创建一道新题。
+
+返回JSON（只返回JSON，不要其他文字）：
 \`\`\`json
 {
   "diagnosis": "错误原因一句话(中文,15字内)",
   "explanation": "详细解释(中文,100-200字)",
   "skills": ["需要练习的知识点1", "知识点2"],
   "tip": "一句话改进建议(中文)",
+  "recommended_problem_ids": [3, 7],
+  "recommendation_reason": "为什么推荐这些已有题(或为什么不推荐,中文,30字内)",
   "practice": {
     "title": "原创练习题名（不要用LeetCode已有题目名，结合新颖场景比如旅行/游戏/太空/动物等，让题目有趣）",
     "description": "题面描述(100-300字,说明输入输出要求，使用原创场景）",
@@ -96,11 +126,12 @@ ${code.slice(0, 3000)}
 }
 \`\`\`
 
-重要规则：
-1. practice必须是一道**全新的原创题**，不是LeetCode/洛谷/Codeforces已有原题。改变场景包装（如买卖股票→收集魔法水晶），让算法核心不变但题目焕然一新。
-2. 至少5个测试用例，每个用例互不相同，覆盖：边界最小值、最大规模、典型场景、特殊情况（空输入/全是相同值/极值等）。
-3. sample_input/sample_output必须和test_cases[0]一致。
-4. 只返回JSON，不要任何额外文字。`;
+判断规则：
+1. 如果题库已有题能充分覆盖学生的薄弱知识点 → 设置recommended_problem_ids为题目ID数组，practice设为null
+2. 如果题库已有题不够或没有匹配题 → recommended_problem_ids设为空数组[]，practice填完整的原创题信息
+3. 如果部分覆盖但不完整 → 同时提供recommended_problem_ids和practice（推荐已有题+补充新题）
+4. 每道原创题必须有至少5个互不相同的测试用例，覆盖边界最小值、最大规模、典型场景、特殊情况
+5. sample_input/sample_output必须和test_cases[0]一致`;
 
   // Call DeepSeek
   const apiKey = env.DEEPSEEK_API_KEY;
@@ -144,9 +175,48 @@ ${code.slice(0, 3000)}
     // Get updated trial info
     const trials = await getAiTrials(db, username);
 
+    // Fetch details for recommended problems if any
+    let recommended = [];
+    const recIds = analysis.recommended_problem_ids || [];
+    if (recIds.length > 0) {
+      const recProbs = await listProblems(db, true);
+      const recMap = new Map();
+      recProbs.forEach(p => recMap.set(p.id, p));
+      recommended = recIds.map(id => {
+        const p = recMap.get(id);
+        if (!p) return null;
+        const difficultyLabels = ['', '简单', '中等', '困难'];
+        let testCases = [];
+        try { testCases = JSON.parse(p.test_cases || '[]'); } catch {}
+        return {
+          id: p.id,
+          title: p.title,
+          difficulty: difficultyLabels[p.difficulty] || '中等',
+          stage: 8,
+          stageName: 'AI生成练习',
+          prerequisites: [],
+          timeComplexity: '?',
+          spaceComplexity: '?',
+          category: p.category,
+          tags: p.category ? p.category.split(',') : [],
+          description: p.description,
+          inputFormat: p.input_desc || '',
+          outputFormat: p.output_desc || '',
+          sampleInput: p.sample_input || '',
+          sampleOutput: p.sample_output || '',
+          constraints: '',
+          cppCode: '',
+          solution: p.solution_text || p.hint || '',
+          solution_hint: p.hint || '',
+          testCasesCount: testCases.length
+        };
+      }).filter(Boolean);
+    }
+
     return addCORS(Response.json({
       success: true,
       analysis,
+      recommended_problems: recommended,
       ai_trials: { used: trials.used, remaining: trials.remaining },
       trial_used: usedTrial
     }), request);
