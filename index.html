@@ -1158,8 +1158,6 @@ function openProblem(id) {
         ${p.constraints ? `<div class="modal-section"><h3>&#x26a0;&#xfe0f; 约束条件</h3><div class="problem-desc">${p.constraints}</div></div>` : ""}
 
         <div class="modal-actions">
-          <button class="modal-act-btn read-style" onclick="markStatus(${p.id},'read')">${curStatus==='read'?'&#x2713; 已阅读':'&#x1f516; 标记已阅读'}</button>
-          <button class="modal-act-btn ac-style" onclick="markStatus(${p.id},'ac')">${curStatus==='ac'?'&#x2713; 已 AC':'&#x1f3c6; 标记已 AC'}</button>
           ${curStatus!=='unstarted' ? `<button class="modal-act-btn" onclick="markStatus(${p.id},'unstarted')">&#x21a9;&#xfe0f; 重置</button>` : ""}
         </div>
       </div>
