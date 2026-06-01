@@ -37,7 +37,7 @@ export async function onRequestPost({ env, request }) {
     try {
       // Get problem from D1
       const { results: rows } = await db.prepare(
-        'SELECT id, title, description, difficulty, category, test_cases, input_desc, output_desc, sample_input, sample_output, constraints, solution_text, solution_code FROM problems WHERE id = ?'
+        'SELECT id, title, description, difficulty, category, test_cases, input_desc, output_desc, sample_input, sample_output, solution_text, solution_code FROM problems WHERE id = ?'
       ).bind(dbId).all();
 
       if (!rows || rows.length === 0) {
@@ -67,7 +67,6 @@ export async function onRequestPost({ env, request }) {
 【输入格式】${p.input_desc || ''}
 【输出格式】${p.output_desc || ''}
 ${sampleTc ? `【样例输入】${sampleTc.input}\n【样例输出】${sampleTc.expected}` : ''}
-【约束条件】${p.constraints || ''}
 
 请返回一个JSON对象（只返回JSON，不要其他文字）：
 \`\`\`json
@@ -125,8 +124,8 @@ ${sampleTc ? `【样例输入】${sampleTc.input}\n【样例输出】${sampleTc.
 
       // Update D1
       await db.prepare(
-        'UPDATE problems SET solution_code = ?, updated_at = datetime("now") WHERE id = ?'
-      ).bind(solutionCode, dbId).run();
+        'UPDATE problems SET solution_code = ?, updated_at = ? WHERE id = ?'
+      ).bind(solutionCode, Math.floor(Date.now() / 1000), dbId).run();
 
       results.push({ id: rawId, success: true, dbId, solution_length: solutionCode.length });
     } catch (e) {
