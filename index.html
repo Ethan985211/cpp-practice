@@ -2142,59 +2142,86 @@ async function validateTestCases() {
   const btn = document.getElementById("btnValidateTC");
   const status = document.getElementById("validateTCStatus");
   btn.disabled = true;
-  status.textContent = "验证中...";
+  status.innerHTML = '<span style="color:var(--orange)">保存题目并提交验证...</span>';
 
   try {
-    const resp = await fetch(JUDGE_URL + "/validate_test_cases", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        code,
-        problem_id: adminEditId || 0,
-        test_cases: tcs.map(tc => ({
-          input: tc.input || "",
-          expected: tc.output || "",
-          type: tc.type || "sample"
-        }))
-      })
-    });
-    const data = await resp.json();
+    // Step 1: Save/update the problem to persist code + test_cases to D1
+    const tcData = tcs.map(tc => ({input: tc.input||"", output: tc.output||"", type: tc.type||"sample"}));
 
-    if (data.error) {
-      status.innerHTML = '<span style="color:var(--red)">错误: ' + escHtml(data.error) + '</span>';
-      return;
-    }
-
-    if (data.verdict === "CE") {
-      status.innerHTML = '<span style="color:var(--red)">编译错误: ' + escHtml(data.compile_error || '') + '</span>';
-      return;
-    }
-
-    const passed = data.passed || 0;
-    const total = data.total || 0;
-    const allPassed = passed === total;
-    status.innerHTML = allPassed
-      ? '<span style="color:var(--green)">全部通过 (' + passed + '/' + total + ')</span>'
-      : '<span style="color:var(--red)">' + passed + '/' + total + ' 通过</span>';
-
-    if (data.results && data.results.length > 0) {
-      let details = '<div style="margin-top:6px;font-size:12px;max-height:200px;overflow-y:auto;background:var(--surface2);border-radius:var(--radius-xs);padding:6px 10px">';
-      data.results.forEach(r => {
-        const rc = (r.verdict || '').toLowerCase();
-        const color = rc === 'ac' ? 'var(--green)' : 'var(--red)';
-        details += '<div style="padding:2px 0;color:' + color + '">#' + (r.case_index || r.case_id || '?') + ' ' + (r.verdict_label || r.verdict || '?');
-        if (r.verdict === 'WA') {
-          details += ' | 期望: ' + escHtml((r.expected || '').substring(0, 50));
-          details += ' | 实际: ' + escHtml((r.actual || r.stdout || '').substring(0, 50));
-        }
-        details += '</div>';
+    if (!adminEditId) {
+      // Create new problem
+      const data = {
+        title: document.getElementById("peTitle").value.trim() || "未命名题目",
+        difficulty: parseInt(document.getElementById("peDifficulty").value) || 1,
+        category: document.getElementById("peCategory").value.trim() || "general",
+        description: document.getElementById("peDescription").value,
+        input_desc: document.getElementById("peInputDesc").value,
+        output_desc: document.getElementById("peOutputDesc").value,
+        sample_input: document.getElementById("peSampleInput").value,
+        sample_output: document.getElementById("peSampleOutput").value,
+        hint: document.getElementById("peHint").value,
+        solution_text: document.getElementById("peSolutionText").value,
+        solution_code: code,
+        test_cases: tcData,
+        is_published: 0
+      };
+      const resp = await adminAuthFetch(AUTH_URL + "/api/admin/problems", {
+        method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(data)
       });
-      details += '</div>';
-      status.innerHTML += details;
+      const result = await resp.json();
+      if (!resp.ok || !result.success) {
+        status.innerHTML = '<span style="color:var(--red)">保存失败: ' + escHtml(result.error||'未知错误') + '</span>';
+        btn.disabled = false; return;
+      }
+      adminEditId = result.id;
+    } else {
+      // Update existing problem's code + test_cases
+      const data = { solution_code: code, test_cases: tcData };
+      const resp = await adminAuthFetch(AUTH_URL + "/api/admin/problems?id=" + adminEditId, {
+        method: "PUT", headers: {"Content-Type":"application/json"}, body: JSON.stringify(data)
+      });
+      if (!resp.ok) {
+        status.innerHTML = '<span style="color:var(--red)">保存失败</span>';
+        btn.disabled = false; return;
+      }
     }
+
+    // Step 2: Submit validation request to be picked up by cron
+    const reqResp = await adminAuthFetch(AUTH_URL + "/api/admin/request-validate", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({problem_id: adminEditId})
+    });
+    const reqResult = await reqResp.json();
+
+    if (!reqResp.ok || !reqResult.success) {
+      status.innerHTML = '<span style="color:var(--red)">提交失败: ' + escHtml(reqResult.error||'未知错误') + '</span>';
+      btn.disabled = false; return;
+    }
+
+    // Step 3: Poll for results (cron runs every few minutes)
+    status.innerHTML = '<span style="color:var(--text2)">验证已提交 (ID=' + adminEditId + ')，等待后台处理...</span>';
+    let attempts = 0;
+    const poll = setInterval(async () => {
+      attempts++;
+      try {
+        const checkResp = await adminAuthFetch(AUTH_URL + "/api/admin/problems?id=" + adminEditId);
+        const checkData = await checkResp.json();
+        const p = checkData.problem;
+        if (p && p.is_published === 1) {
+          clearInterval(poll);
+          status.innerHTML = '<span style="color:var(--green)">全部通过！题目已自动发布 ✓</span>';
+          btn.disabled = false;
+        } else if (attempts >= 24) {
+          clearInterval(poll);
+          status.innerHTML = '<span style="color:var(--orange)">验证仍在处理中，请稍后刷新查看结果</span>';
+          btn.disabled = false;
+        } else {
+          status.innerHTML = '<span style="color:var(--text2)">等待验证中... (' + (attempts*10) + 's) 系统每10分钟自动执行</span>';
+        }
+      } catch(e) { /* ignore poll errors */ }
+    }, 10000);
   } catch (e) {
-    status.innerHTML = '<span style="color:var(--red)">验证失败: 无法连接判题服务器</span>';
-  } finally {
+    status.innerHTML = '<span style="color:var(--red)">验证提交失败: 网络错误</span>';
     btn.disabled = false;
   }
 }
