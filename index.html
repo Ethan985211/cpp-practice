@@ -407,9 +407,16 @@ footer{text-align:center;padding:28px;color:var(--text3);font-size:12px;border-t
 
 /* Test case editor */
 .testcase-editor{margin-top:8px}
-.testcase-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:start}
+.testcase-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:var(--radius-xs);border:1px solid var(--border)}
 .testcase-row textarea{min-height:56px;font-size:11px}
 .testcase-row button{align-self:center}
+.testcase-row-header{grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.testcase-row-header .testcase-index{font-size:12px;font-weight:600;color:var(--text2)}
+.testcase-type-btn{padding:3px 10px;border-radius:var(--radius-xs);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);font-family:var(--font);transition:all .15s;background:var(--surface)}
+.testcase-type-sample{color:var(--green);border-color:var(--green)}
+.testcase-type-sample:hover{background:rgba(52,211,153,.1)}
+.testcase-type-hidden{color:var(--purple);border-color:var(--purple)}
+.testcase-type-hidden:hover{background:rgba(139,92,246,.1)}
 </style>
 </head>
 <body>
@@ -1509,10 +1516,16 @@ async function submitCode(problemId) {
   results.innerHTML = "";
 
   try {
+    const p = allProblems.find(p => p.id === problemId);
+    const tcs = (p && p.test_cases) ? p.test_cases.map(tc => ({
+      input: tc.input || '',
+      expected: tc.expected || tc.output || '',
+      type: tc.type || (tc.hidden ? 'hidden' : 'sample')
+    })) : [];
     const resp = await fetch(JUDGE_URL + "/judge", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({code, problem_id: problemId})
+      body: JSON.stringify({code, problem_id: problemId, test_cases: tcs})
     });
     const data = await resp.json();
     renderJudgeResults(data, problemId);
@@ -2031,10 +2044,12 @@ function showProblemEditor() {
     <div><label>题解思路</label><textarea class="tall" id="peSolutionText" placeholder="题解说明..."></textarea></div>
     <div><label>C++ 模板代码</label><textarea class="tall" id="peSolutionCode" placeholder="#include &lt;iostream&gt;..."></textarea></div>
     <div>
-      <label>测试用例 (JSON)</label>
+      <label>测试用例</label>
       <div class="testcase-editor" id="testCaseEditor"></div>
       <div class="admin-toolbar" style="margin-top:8px">
         <button onclick="addTestCase()" class="admin-table actions button">添加测试用例</button>
+        <button onclick="validateTestCases()" id="btnValidateTC" class="admin-table actions button primary">验证样例</button>
+        <span id="validateTCStatus" style="font-size:12px;color:var(--text2);margin-left:8px"></span>
       </div>
     </div>
     <div class="admin-form-actions">
@@ -2069,13 +2084,19 @@ async function loadProblemData(id) {
 
 function addTestCase() {
   if (!window._testCases) window._testCases = [];
-  window._testCases.push({input:"", output:""});
+  window._testCases.push({input:"", output:"", type:"sample"});
   renderTestCases();
 }
 
 function delTestCase(idx) {
   window._testCases.splice(idx, 1);
-  if (window._testCases.length === 0) window._testCases = [{input:"", output:""}];
+  if (window._testCases.length === 0) window._testCases = [{input:"", output:"", type:"sample"}];
+  renderTestCases();
+}
+
+function toggleTestCaseType(idx) {
+  const tc = window._testCases[idx];
+  tc.type = (tc.type === "hidden") ? "sample" : "hidden";
   renderTestCases();
 }
 
@@ -2083,12 +2104,90 @@ function renderTestCases() {
   const el = document.getElementById("testCaseEditor");
   if (!el) return;
   const tcs = window._testCases || [];
-  el.innerHTML = tcs.map((tc, i) => `
+  el.innerHTML = tcs.map((tc, i) => {
+    const isHidden = tc.type === "hidden" || tc.hidden === true;
+    const typeLabel = isHidden ? "隐藏" : "样例";
+    const typeBtnClass = isHidden ? "testcase-type-hidden" : "testcase-type-sample";
+    return `
     <div class="testcase-row">
+      <div class="testcase-row-header">
+        <span class="testcase-index">#${i+1}</span>
+        <button class="testcase-type-btn ${typeBtnClass}" onclick="toggleTestCaseType(${i})" title="点击切换可见性">${typeLabel}</button>
+        <button onclick="delTestCase(${i})" class="admin-table actions button danger" style="margin:0 0 0 auto">删除</button>
+      </div>
       <textarea placeholder="输入" onchange="window._testCases[${i}].input=this.value">${escHtml(tc.input||"")}</textarea>
       <textarea placeholder="期望输出" onchange="window._testCases[${i}].output=this.value">${escHtml(tc.output||"")}</textarea>
-      <button onclick="delTestCase(${i})" class="admin-table actions button danger" style="margin-top:0">删除</button>
-    </div>`).join("");
+    </div>`;
+  }).join("");
+}
+
+async function validateTestCases() {
+  const code = document.getElementById("peSolutionCode").value.trim();
+  if (!code) { alert("请先填写 C++ 模板代码"); return; }
+
+  const tcs = window._testCases || [];
+  if (tcs.length === 0 || !tcs.some(tc => (tc.input||"").trim() || (tc.output||"").trim())) {
+    alert("请先添加至少一个非空测试用例"); return;
+  }
+
+  const btn = document.getElementById("btnValidateTC");
+  const status = document.getElementById("validateTCStatus");
+  btn.disabled = true;
+  status.textContent = "验证中...";
+
+  try {
+    const resp = await fetch(JUDGE_URL + "/validate_test_cases", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        code,
+        problem_id: adminEditId || 0,
+        test_cases: tcs.map(tc => ({
+          input: tc.input || "",
+          expected: tc.output || "",
+          type: tc.type || "sample"
+        }))
+      })
+    });
+    const data = await resp.json();
+
+    if (data.error) {
+      status.innerHTML = '<span style="color:var(--red)">错误: ' + escHtml(data.error) + '</span>';
+      return;
+    }
+
+    if (data.verdict === "CE") {
+      status.innerHTML = '<span style="color:var(--red)">编译错误: ' + escHtml(data.compile_error || '') + '</span>';
+      return;
+    }
+
+    const passed = data.passed || 0;
+    const total = data.total || 0;
+    const allPassed = passed === total;
+    status.innerHTML = allPassed
+      ? '<span style="color:var(--green)">全部通过 (' + passed + '/' + total + ')</span>'
+      : '<span style="color:var(--red)">' + passed + '/' + total + ' 通过</span>';
+
+    if (data.results && data.results.length > 0) {
+      let details = '<div style="margin-top:6px;font-size:12px;max-height:200px;overflow-y:auto;background:var(--surface2);border-radius:var(--radius-xs);padding:6px 10px">';
+      data.results.forEach(r => {
+        const rc = (r.verdict || '').toLowerCase();
+        const color = rc === 'ac' ? 'var(--green)' : 'var(--red)';
+        details += '<div style="padding:2px 0;color:' + color + '">#' + (r.case_index || r.case_id || '?') + ' ' + (r.verdict_label || r.verdict || '?');
+        if (r.verdict === 'WA') {
+          details += ' | 期望: ' + escHtml((r.expected || '').substring(0, 50));
+          details += ' | 实际: ' + escHtml((r.actual || r.stdout || '').substring(0, 50));
+        }
+        details += '</div>';
+      });
+      details += '</div>';
+      status.innerHTML += details;
+    }
+  } catch (e) {
+    status.innerHTML = '<span style="color:var(--red)">验证失败: 无法连接判题服务器</span>';
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function saveProblem() {
@@ -2104,7 +2203,10 @@ async function saveProblem() {
     hint: document.getElementById("peHint").value,
     solution_text: document.getElementById("peSolutionText").value,
     solution_code: document.getElementById("peSolutionCode").value,
-    test_cases: window._testCases || []
+    test_cases: (window._testCases || []).map(tc => ({
+      input: tc.input || "", output: tc.output || "",
+      type: tc.type || "sample"
+    }))
   };
   if (!data.title) { alert("标题不能为空"); return; }
 
