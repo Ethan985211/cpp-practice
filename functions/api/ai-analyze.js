@@ -56,7 +56,51 @@ export async function onRequestPost({ env, request }) {
     resultsText += '\n';
   });
 
-  const prompt = `你是C++算法教练。分析以下提交:\n\n【题目ID】${problem_id}\n【判题结果】${verdict_label || verdict} (${verdict})\n【测试详情】\n${resultsText}\n【学生代码】\n\`\`\`cpp\n${code.slice(0, 3000)}\n\`\`\`\n\n请分析并返回JSON:\n\`\`\`json\n{\n  "diagnosis": "错误原因一句话(中文,15字内)",\n  "explanation": "详细解释(中文,100-200字)",\n  "skills": ["需要练习的知识点1", "知识点2"],\n  "tip": "一句话改进建议(中文)",\n  "practice": {\n    "title": "配套练习题目标题",\n    "description": "题面描述(100-300字,说明输入输出要求)",\n    "difficulty": "easy/medium/hard",\n    "tags": ["标签1", "标签2"],\n    "solution_hint": "解题思路提示(50-100字)",\n    "input_desc": "输入格式说明(如:第一行一个整数n,第二行n个整数)",\n    "output_desc": "输出格式说明(如:输出一个整数表示结果)",\n    "sample_input": "样例输入",\n    "sample_output": "样例输出",\n    "constraints": "约束条件(如:1<=n<=10^5, |ai|<=10^9)",\n    "test_cases": [\n      {"input": "样例1输入", "expected": "样例1输出"},\n      {"input": "测试2输入", "expected": "测试2输出"},\n      {"input": "测试3输入", "expected": "测试3输出"},\n      {"input": "测试4输入", "expected": "测试4输出"},\n      {"input": "测试5输入", "expected": "测试5输出"}\n    ]\n  }\n}\n\`\`\`\n必须生成至少5个测试用例,第1个与sample一致,其余覆盖边界值/典型场景/特殊情况。只返回JSON。`;
+  const prompt = `你是C++算法教练。分析以下提交，并为学生生成一道**原创**配套练习题。
+
+【题目ID】${problem_id}
+【判题结果】${verdict_label || verdict} (${verdict})
+【测试详情】
+${resultsText}
+【学生代码】
+\`\`\`cpp
+${code.slice(0, 3000)}
+\`\`\`
+
+请分析并返回JSON:
+\`\`\`json
+{
+  "diagnosis": "错误原因一句话(中文,15字内)",
+  "explanation": "详细解释(中文,100-200字)",
+  "skills": ["需要练习的知识点1", "知识点2"],
+  "tip": "一句话改进建议(中文)",
+  "practice": {
+    "title": "原创练习题名（不要用LeetCode已有题目名，结合新颖场景比如旅行/游戏/太空/动物等，让题目有趣）",
+    "description": "题面描述(100-300字,说明输入输出要求，使用原创场景）",
+    "difficulty": "easy/medium/hard（与原题难度匹配或稍低）",
+    "tags": ["标签1", "标签2"],
+    "solution_hint": "解题思路提示(50-100字)",
+    "input_desc": "输入格式说明",
+    "output_desc": "输出格式说明",
+    "sample_input": "样例输入",
+    "sample_output": "样例输出",
+    "constraints": "约束条件(如:1<=n<=10^5, |ai|<=10^9)",
+    "test_cases": [
+      {"input": "样例1输入", "expected": "样例1输出"},
+      {"input": "测试2输入", "expected": "测试2输出"},
+      {"input": "测试3输入", "expected": "测试3输出"},
+      {"input": "测试4输入", "expected": "测试4输出"},
+      {"input": "测试5输入", "expected": "测试5输出"}
+    ]
+  }
+}
+\`\`\`
+
+重要规则：
+1. practice必须是一道**全新的原创题**，不是LeetCode/洛谷/Codeforces已有原题。改变场景包装（如买卖股票→收集魔法水晶），让算法核心不变但题目焕然一新。
+2. 至少5个测试用例，每个用例互不相同，覆盖：边界最小值、最大规模、典型场景、特殊情况（空输入/全是相同值/极值等）。
+3. sample_input/sample_output必须和test_cases[0]一致。
+4. 只返回JSON，不要任何额外文字。`;
 
   // Call DeepSeek
   const apiKey = env.DEEPSEEK_API_KEY;
@@ -71,7 +115,7 @@ export async function onRequestPost({ env, request }) {
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
+        temperature: 0.5,
         max_tokens: 3000
       })
     });
