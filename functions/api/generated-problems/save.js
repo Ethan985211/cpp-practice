@@ -5,6 +5,26 @@ import { addCORS } from '../../_utils/cors.js';
 
 const CVM_JUDGE_URL = 'http://82.156.34.78/api/add-test-cases';
 
+// Stage assignment based on tags
+const TAG_STAGE_MAP = {
+  '数组':1,'字符串':1,'哈希表':1,'链表':1,'栈':1,'队列':1,'模拟':1,'基础':1,'指针':1,
+  '双指针':2,'滑动窗口':2,'前缀和':2,'二分查找':2,'排序':2,'贪心':2,'分治':2,
+  'DFS':3,'BFS':3,'回溯':3,'剪枝':3,'递归':3,'搜索':3,'枚举':3,
+  '动态规划':4,'DP':4,'背包':4,'记忆化搜索':4,'状态压缩':4,'线性DP':4,
+  '图':5,'最短路':5,'Dijkstra':5,'拓扑排序':5,'MST':5,'并查集':5,'最小生成树':5,
+  '树':6,'堆':6,'线段树':6,'Trie':6,'二叉搜索树':6,'平衡树':6,'单调栈':6,'优先队列':6,'前缀树':6,
+  '数学':7,'数论':7,'组合':7,'博弈':7,'几何':7,'位运算':7,'概率':7,'矩阵':7
+};
+const STAGE_NAMES = {1:'基础入门',2:'基础算法',3:'搜索与回溯',4:'动态规划入门',5:'图论',6:'数据结构进阶',7:'数学与综合'};
+
+function assignStage(tags) {
+  for (const t of (tags || [])) {
+    const s = TAG_STAGE_MAP[t.toLowerCase()];
+    if (s) return s;
+  }
+  return 2;
+}
+
 export async function onRequestPost({ env, request }) {
   const db = getDB(env);
   await initDB(db);
@@ -77,13 +97,14 @@ export async function onRequestPost({ env, request }) {
 
   // Build complete problem object for frontend
   const offsetId = newId + 100000;
+  const stageNum = assignStage(practice.tags || []);
   const problem = {
     id: offsetId,
     id_raw: newId,
     title: finalTitle,
     difficulty: difficultyLabel,
-    stage: 8,
-    stageName: 'AI生成练习',
+    stage: stageNum,
+    stageName: STAGE_NAMES[stageNum],
     prerequisites: [],
     timeComplexity: '?',
     spaceComplexity: '?',
