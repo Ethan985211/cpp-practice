@@ -61,7 +61,8 @@ int main() {
     cout << (visited == n ? "YES" : "NO") << "\\n";
     return 0;
 }`,
-    solution: "Kahn 算法实现拓扑排序：先统计所有节点的入度，将入度为 0 的节点入队。每次出队一个节点表示该课程已修完，将其所有后继节点的入度减 1，若减到 0 则入队。最终若处理节点数等于 n 则无环可完成，否则存在循环依赖。时间复杂度 O(V+E)，空间复杂度 O(V+E)。这是图论入门必会算法，也是课程安排、任务调度等实际问题的抽象模型。"
+    solution: "Kahn 算法实现拓扑排序：先统计所有节点的入度，将入度为 0 的节点入队。每次出队一个节点表示该课程已修完，将其所有后继节点的入度减 1，若减到 0 则入队。最终若处理节点数等于 n 则无环可完成，否则存在循环依赖。时间复杂度 O(V+E)，空间复杂度 O(V+E)。这是图论入门必会算法，也是课程安排、任务调度等实际问题的抽象模型。",
+    test_cases: [{"input":"4 4\n1 0\n2 1\n3 2\n1 3","expected":"NO","type":"sample"},{"input":"4 4\n1 0\n2 1\n3 2\n1 3","expected":"NO","type":"hidden"}],
   },
   {
     id: 30,
@@ -128,7 +129,8 @@ int main() {
     cout << ans << "\\n";
     return 0;
 }`,
-    solution: "Dijkstra 算法配合最小堆求解单源最短路径。核心：维护距离数组 dist，每次从堆中取出距离最小的未确定节点进行松弛操作。若取出节点的距离大于已记录距离则跳过（惰性删除）。松弛操作：若通过当前节点 u 到达 v 比直接到达更短则更新 dist[v]。最后遍历所有 dist，取最大值即为最晚收到信号的时间。若有节点仍为 INF 则不可达返回 -1。时间复杂度 O((V+E)log V)。"
+    solution: "Dijkstra 算法配合最小堆求解单源最短路径。核心：维护距离数组 dist，每次从堆中取出距离最小的未确定节点进行松弛操作。若取出节点的距离大于已记录距离则跳过（惰性删除）。松弛操作：若通过当前节点 u 到达 v 比直接到达更短则更新 dist[v]。最后遍历所有 dist，取最大值即为最晚收到信号的时间。若有节点仍为 INF 则不可达返回 -1。时间复杂度 O((V+E)log V)。",
+    test_cases: [{"input":"4 4 2\n2 1 1\n2 3 1\n3 4 1\n1 4 1","expected":"2","type":"sample"},{"input":"4 4 2\n2 1 1\n2 3 1\n3 4 1\n1 4 1","expected":"2","type":"hidden"}],
   },
   {
     id: 31,
@@ -199,7 +201,8 @@ int main() {
     cout << -1 << "\\n";
     return 0;
 }`,
-    solution: "将每种基因序列看作图中的一个节点，若两个序列只差一个字符则存在一条边。问题转化为求从 start 到 target 的最短路径，用 BFS 求解。BFS 过程中对当前序列每个位置尝试替换为 A/C/G/T 之一，若新序列在基因库中且未访问则入队。由于 BFS 逐层遍历，首次遇到 target 时的步数即为最少变化次数。关键优化：预处理基因库为哈希集合实现 O(1) 存在性查询。"
+    solution: "将每种基因序列看作图中的一个节点，若两个序列只差一个字符则存在一条边。问题转化为求从 start 到 target 的最短路径，用 BFS 求解。BFS 过程中对当前序列每个位置尝试替换为 A/C/G/T 之一，若新序列在基因库中且未访问则入队。由于 BFS 逐层遍历，首次遇到 target 时的步数即为最少变化次数。关键优化：预处理基因库为哈希集合实现 O(1) 存在性查询。",
+    test_cases: [{"input":"AACCGGTT\nAAACGGTA\n3\nAACCGGTA\nAACCGCTA\nAAACGGTA","expected":"2","type":"sample"},{"input":"AACCGGTT\nAAACGGTA\n3\nAACCGGTA\nAACCGCTA\nAAACGGTA","expected":"2","type":"hidden"}],
   },
   {
     id: 32,
@@ -263,7 +266,8 @@ int main() {
     }
     return 0;
 }`,
-    solution: "图深拷贝的核心是建立原节点到新节点的映射（哈希表），避免重复创建和正确处理图中的环。DFS 或 BFS 遍历原图：遇到新节点时创建副本并存入映射表，然后递归/迭代地克隆其所有邻居。由于使用映射表记录已克隆节点，遇到已访问节点时直接引用副本而不会陷入无限循环。时间复杂度 O(V+E)，每个节点和每条边恰好处理一次。"
+    solution: "图深拷贝的核心是建立原节点到新节点的映射（哈希表），避免重复创建和正确处理图中的环。DFS 或 BFS 遍历原图：遇到新节点时创建副本并存入映射表，然后递归/迭代地克隆其所有邻居。由于使用映射表记录已克隆节点，遇到已访问节点时直接引用副本而不会陷入无限循环。时间复杂度 O(V+E)，每个节点和每条边恰好处理一次。",
+    test_cases: [{"input":"4\n1 3\n0 2\n1 3\n0 2","expected":"1 3\n0 2\n1 3\n0 2","type":"sample"},{"input":"4\n1 3\n0 2\n1 3\n0 2","expected":"1 3\n0 2\n1 3\n0 2","type":"hidden"}],
   },
   {
     id: 33,
@@ -319,7 +323,8 @@ int main() {
     cout << maxArea << "\\n";
     return 0;
 }`,
-    solution: "DFS Flood Fill 经典变体：遍历整个网格，遇到陆地（值为 1）时启动 DFS 探索整个连通区域，将访问过的陆地标记为 0（淹没），同时累加面积计数。DFS 返回该岛屿的总面积，与全局最大值比较更新。四个方向用方向数组 dx/dy 简化代码。时间复杂度 O(m×n)，每个格子恰好被访问一次。DFS 的递归深度取决于岛屿面积，本题数据范围安全。"
+    solution: "DFS Flood Fill 经典变体：遍历整个网格，遇到陆地（值为 1）时启动 DFS 探索整个连通区域，将访问过的陆地标记为 0（淹没），同时累加面积计数。DFS 返回该岛屿的总面积，与全局最大值比较更新。四个方向用方向数组 dx/dy 简化代码。时间复杂度 O(m×n)，每个格子恰好被访问一次。DFS 的递归深度取决于岛屿面积，本题数据范围安全。",
+    test_cases: [{"input":"4 5\n11000\n11000\n00100\n00011","expected":"4","type":"sample"},{"input":"4 5\n11000\n11000\n00100\n00011","expected":"4","type":"hidden"}],
   },
   {
     id: 34,
@@ -382,7 +387,8 @@ int main() {
                 cout << i << " " << j << "\\n";
     return 0;
 }`,
-    solution: "逆向思维：不从每个单元格出发判断能否流向海洋，而是从海洋边界逆流而上进行 DFS。从太平洋边界（左/上）出发，沿非递减方向 DFS，标记所有能到达太平洋的单元格。同样从大西洋边界（右/下）出发标记。若某单元格同时被两个标记覆盖，说明水可同时流向两大洋。关键在于逆向条件：从海洋逆流时只访问高度 ≥ 当前单元格的邻居（即水能从邻居流向当前格）。"
+    solution: "逆向思维：不从每个单元格出发判断能否流向海洋，而是从海洋边界逆流而上进行 DFS。从太平洋边界（左/上）出发，沿非递减方向 DFS，标记所有能到达太平洋的单元格。同样从大西洋边界（右/下）出发标记。若某单元格同时被两个标记覆盖，说明水可同时流向两大洋。关键在于逆向条件：从海洋逆流时只访问高度 ≥ 当前单元格的邻居（即水能从邻居流向当前格）。",
+    test_cases: [{"input":"5 5\n1 2 2 3 5\n3 2 3 4 4\n2 4 5 3 1\n6 7 1 4 5\n5 1 1 2 4","expected":"0 4\n1 3\n1 4\n2 2\n3 0\n3 1\n4 0","type":"sample"},{"input":"5 5\n1 2 2 3 5\n3 2 3 4 4\n2 4 5 3 1\n6 7 1 4 5\n5 1 1 2 4","expected":"0 4\n1 3\n1 4\n2 2\n3 0\n3 1\n4 0","type":"hidden"}],
   },
   {
     id: 35,
@@ -439,7 +445,8 @@ int main() {
     cout << redundant.first << " " << redundant.second << "\\n";
     return 0;
 }`,
-    solution: "并查集的经典应用——检测无向图中的环。遍历每条边，尝试用并查集合并两个端点：若两端点已经属于同一集合（find 结果相同），说明添加这条边会形成环，它就是冗余边。若不同则合并。因为题目要求返回最后出现的冗余边，按顺序遍历并在每次发现环时更新答案即可。时间复杂度接近 O(n)，得益于路径压缩和按秩合并（本题简化版只用路径压缩已足够）。"
+    solution: "并查集的经典应用——检测无向图中的环。遍历每条边，尝试用并查集合并两个端点：若两端点已经属于同一集合（find 结果相同），说明添加这条边会形成环，它就是冗余边。若不同则合并。因为题目要求返回最后出现的冗余边，按顺序遍历并在每次发现环时更新答案即可。时间复杂度接近 O(n)，得益于路径压缩和按秩合并（本题简化版只用路径压缩已足够）。",
+    test_cases: [{"input":"5\n1 2\n2 3\n3 4\n1 4\n1 5","expected":"1 4","type":"sample"},{"input":"5\n1 2\n2 3\n3 4\n1 4\n1 5","expected":"1 4","type":"hidden"}],
   },
   {
     id: 36,
@@ -511,7 +518,8 @@ int main() {
         cout << -1 << "\\n";
     return 0;
 }`,
-    solution: "Kruskal 算法：贪心地选择权重最小的边，若该边连接的两个节点属于不同连通分量（用并查集判断），则将该边加入 MST 并合并连通分量。具体步骤：1) 对所有边按权重升序排序；2) 遍历每条边，用并查集 find 检查是否连通，若不连通则 unite 并累加权重；3) 当选中 n-1 条边或遍历完所有边时停止。若最终选中的边数不足 n-1 则图不连通。时间复杂度 O(E log E)，瓶颈在排序。"
+    solution: "Kruskal 算法：贪心地选择权重最小的边，若该边连接的两个节点属于不同连通分量（用并查集判断），则将该边加入 MST 并合并连通分量。具体步骤：1) 对所有边按权重升序排序；2) 遍历每条边，用并查集 find 检查是否连通，若不连通则 unite 并累加权重；3) 当选中 n-1 条边或遍历完所有边时停止。若最终选中的边数不足 n-1 则图不连通。时间复杂度 O(E log E)，瓶颈在排序。",
+    test_cases: [{"input":"4 5\n1 2 2\n1 3 3\n2 3 1\n2 4 4\n3 4 5","expected":"7","type":"sample"},{"input":"4 5\n1 2 2\n1 3 3\n2 3 1\n2 4 4\n3 4 5","expected":"7","type":"hidden"}],
   },
 
   // ═══ 阶段6: 数据结构进阶 ═══
@@ -585,7 +593,8 @@ int main() {
     }
     return 0;
 }`,
-    solution: "核心数据结构：哈希表 + 双向链表。哈希表提供 O(1) 键查找，双向链表维护访问顺序（头部最新，尾部最旧）。get 时通过哈希表定位节点，用 list::splice 将其移到头部（O(1)）。put 时：若键存在则更新值并移到头部；若满则删除链表尾节点并在哈希表中移除；最后在头部插入新节点。STL list::splice 将节点从原位置移动到新位置是 O(1) 的，这是实现 O(1) LRU 的关键。"
+    solution: "核心数据结构：哈希表 + 双向链表。哈希表提供 O(1) 键查找，双向链表维护访问顺序（头部最新，尾部最旧）。get 时通过哈希表定位节点，用 list::splice 将其移到头部（O(1)）。put 时：若键存在则更新值并移到头部；若满则删除链表尾节点并在哈希表中移除；最后在头部插入新节点。STL list::splice 将节点从原位置移动到新位置是 O(1) 的，这是实现 O(1) LRU 的关键。",
+    test_cases: [{"input":"2\n2 1 10\n2 2 20\n1 1\n2 3 30\n1 2\n1 3\n0","expected":"10\n-1\n30","type":"sample"},{"input":"2\n2 1 10\n2 2 20\n1 1\n2 3 30\n1 2\n1 3\n0","expected":"10\n-1\n30","type":"hidden"}],
   },
   {
     id: 38,
@@ -651,7 +660,8 @@ int main() {
     }
     return 0;
 }`,
-    solution: "使用两个栈：data 存储所有元素，minStk 存储当前最小值序列。push 时若新元素 ≤ minStk 栈顶则也压入 minStk（相等也压入以保证重复元素 pop 时正确）。pop 时若 data 栈顶等于 minStk 栈顶则同步弹出。getMin 直接返回 minStk 栈顶即可。所有操作均为 O(1)。注意 push 时需用 ≤ 而非 <，否则当有相同最小值时 pop 会错误移除 minStk 中的记录。"
+    solution: "使用两个栈：data 存储所有元素，minStk 存储当前最小值序列。push 时若新元素 ≤ minStk 栈顶则也压入 minStk（相等也压入以保证重复元素 pop 时正确）。pop 时若 data 栈顶等于 minStk 栈顶则同步弹出。getMin 直接返回 minStk 栈顶即可。所有操作均为 O(1)。注意 push 时需用 ≤ 而非 <，否则当有相同最小值时 pop 会错误移除 minStk 中的记录。",
+    test_cases: [{"input":"7\n1 -2\n1 0\n1 -3\n4\n2\n3\n4","expected":"-3\n0\n-2","type":"sample"},{"input":"7\n1 -2\n1 0\n1 -3\n4\n2\n3\n4","expected":"-3\n0\n-2","type":"hidden"}],
   },
   {
     id: 39,
@@ -725,7 +735,8 @@ int main() {
     }
     return 0;
 }`,
-    solution: "用两个栈实现队列：inStack 用于入队，outStack 用于出队。push 操作直接压入 inStack。pop/peek 时若 outStack 为空，则将 inStack 中所有元素逐一弹出并压入 outStack（逆序），此时 outStack 栈顶即为队头。虽然单次 transfer 成本 O(n)，但每个元素最多被转移一次，均摊复杂度为 O(1)。这是理解栈与队列关系的经典设计题。"
+    solution: "用两个栈实现队列：inStack 用于入队，outStack 用于出队。push 操作直接压入 inStack。pop/peek 时若 outStack 为空，则将 inStack 中所有元素逐一弹出并压入 outStack（逆序），此时 outStack 栈顶即为队头。虽然单次 transfer 成本 O(n)，但每个元素最多被转移一次，均摊复杂度为 O(1)。这是理解栈与队列关系的经典设计题。",
+    test_cases: [{"input":"6\n1 1\n1 2\n3\n2\n4\n2","expected":"1\n1\n0\n2","type":"sample"},{"input":"6\n1 1\n1 2\n3\n2\n4\n2","expected":"1\n1\n0\n2","type":"hidden"}],
   },
   {
     id: 40,
@@ -803,7 +814,8 @@ int main() {
     }
     return 0;
 }`,
-    solution: "使用固定大小的数组配合两个指针 head 和 tail 以及一个 size 计数器。入队时 tail 前移（取模），出队时 head 前移（取模）。size 跟踪当前元素数量，避免 head==tail 时的二义性（不知道是空还是满）。所有操作直接访问数组对应位置，均为 O(1)。取模运算 (index + 1) % cap 实现循环。注意 Front 返回 data[head]，Rear 返回 data[tail]。"
+    solution: "使用固定大小的数组配合两个指针 head 和 tail 以及一个 size 计数器。入队时 tail 前移（取模），出队时 head 前移（取模）。size 跟踪当前元素数量，避免 head==tail 时的二义性（不知道是空还是满）。所有操作直接访问数组对应位置，均为 O(1)。取模运算 (index + 1) % cap 实现循环。注意 Front 返回 data[head]，Rear 返回 data[tail]。",
+    test_cases: [{"input":"3\n8\n1 1\n1 2\n1 3\n1 4\n4\n6\n2\n4","expected":"1\n1\n1\n0\n3\n1\n1\n3","type":"sample"},{"input":"3\n8\n1 1\n1 2\n1 3\n1 4\n4\n6\n2\n4","expected":"1\n1\n1\n0\n3\n1\n1\n3","type":"hidden"}],
   },
   {
     id: 41,
@@ -849,7 +861,8 @@ int main() {
         cout << answer[i] << " \\n"[i == n - 1];
     return 0;
 }`,
-    solution: "维护一个单调递减栈（存储下标，对应温度递减）。遍历数组，对于当前温度 temps[i]：若栈非空且当前温度大于栈顶下标对应的温度，则栈顶元素找到了下一个更高温度，出栈并计算天数差 i - prev。重复此过程直到栈空或当前温度不大于栈顶温度，然后将当前下标入栈。遍历结束后栈中剩余下标没有更高温度，保持默认值 0。每个元素入栈出栈各一次，时间复杂度 O(n)。"
+    solution: "维护一个单调递减栈（存储下标，对应温度递减）。遍历数组，对于当前温度 temps[i]：若栈非空且当前温度大于栈顶下标对应的温度，则栈顶元素找到了下一个更高温度，出栈并计算天数差 i - prev。重复此过程直到栈空或当前温度不大于栈顶温度，然后将当前下标入栈。遍历结束后栈中剩余下标没有更高温度，保持默认值 0。每个元素入栈出栈各一次，时间复杂度 O(n)。",
+    test_cases: [{"input":"8\n73 74 75 71 69 72 76 73","expected":"1 1 4 2 1 1 0 0","type":"sample"},{"input":"8\n73 74 75 71 69 72 76 73","expected":"1 1 4 2 1 1 0 0","type":"hidden"},{"input":"1\n1","expected":"0","type":"hidden"}],
   },
   {
     id: 42,
@@ -902,7 +915,8 @@ int main() {
         cout << result[i] << " \\n"[i == result.size() - 1];
     return 0;
 }`,
-    solution: "使用双端队列（deque）维护窗口内元素的单调递减序列（存储下标）。队列头部始终是当前窗口的最大值的下标。遍历数组时做三件事：1) 移除队头超出窗口范围的过期下标；2) 从队尾移除所有不大于当前元素的下标（它们不可能是之后窗口的最大值）；3) 将当前下标入队尾。当 i ≥ k-1 时记录队头对应值。每个元素最多入队出队各一次，因此总时间复杂度 O(n)，优于优先队列的 O(n log k)。"
+    solution: "使用双端队列（deque）维护窗口内元素的单调递减序列（存储下标）。队列头部始终是当前窗口的最大值的下标。遍历数组时做三件事：1) 移除队头超出窗口范围的过期下标；2) 从队尾移除所有不大于当前元素的下标（它们不可能是之后窗口的最大值）；3) 将当前下标入队尾。当 i ≥ k-1 时记录队头对应值。每个元素最多入队出队各一次，因此总时间复杂度 O(n)，优于优先队列的 O(n log k)。",
+    test_cases: [{"input":"8 3\n1 3 -1 -3 5 3 6 7","expected":"3 3 5 5 6 7","type":"sample"},{"input":"8 3\n1 3 -1 -3 5 3 6 7","expected":"3 3 5 5 6 7","type":"hidden"}],
   },
   {
     id: 43,
@@ -969,7 +983,8 @@ int main() {
     }
     return 0;
 }`,
-    solution: "使用大小堆（对顶堆）结构：大顶堆 maxHeap 存储较小的一半元素，小顶堆 minHeap 存储较大的一半元素。插入时：若元素 ≤ maxHeap 堆顶则入大顶堆，否则入小顶堆。balance 函数维持两个堆的大小平衡：大顶堆最多比小顶堆多一个元素。查询中位数时：若大顶堆更大则堆顶即为中位数，否则两堆顶的平均值即为中位数（向下取整）。每次插入 O(log n)，查询 O(1)。"
+    solution: "使用大小堆（对顶堆）结构：大顶堆 maxHeap 存储较小的一半元素，小顶堆 minHeap 存储较大的一半元素。插入时：若元素 ≤ maxHeap 堆顶则入大顶堆，否则入小顶堆。balance 函数维持两个堆的大小平衡：大顶堆最多比小顶堆多一个元素。查询中位数时：若大顶堆更大则堆顶即为中位数，否则两堆顶的平均值即为中位数（向下取整）。每次插入 O(log n)，查询 O(1)。",
+    test_cases: [{"input":"1\n2\n-10001\n3\n-10001\n-20000","expected":"1\n2","type":"sample"},{"input":"1\n2\n-10001\n3\n-10001\n-20000","expected":"1\n2","type":"hidden"}],
   },
 
   // ═══ 阶段7: 数学与综合 ═══
@@ -1013,7 +1028,8 @@ int main() {
     cout << qpow(a, b) << "\\n";
     return 0;
 }`,
-    solution: "快速幂基于二分思想：将指数 b 按二进制分解。a^b = a^(b₀·2⁰) × a^(b₁·2¹) × a^(b₂·2²) × ...。循环中每次判断 b 的最低位：若为 1 则乘入结果；然后将 a 自乘（a = a²），b 右移一位。循环 log₂(b) 次结束。模运算的性质 (a×b) mod m = (a mod m × b mod m) mod m 保证中间结果不溢出。时间复杂度 O(log b)，空间 O(1)。"
+    solution: "快速幂基于二分思想：将指数 b 按二进制分解。a^b = a^(b₀·2⁰) × a^(b₁·2¹) × a^(b₂·2²) × ...。循环中每次判断 b 的最低位：若为 1 则乘入结果；然后将 a 自乘（a = a²），b 右移一位。循环 log₂(b) 次结束。模运算的性质 (a×b) mod m = (a mod m × b mod m) mod m 保证中间结果不溢出。时间复杂度 O(log b)，空间 O(1)。",
+    test_cases: [{"input":"3 5","expected":"243","type":"sample"},{"input":"2.0 10","expected":"1","type":"hidden"},{"input":"2.1 3","expected":"1","type":"hidden"},{"input":"2.0 -2","expected":"1","type":"hidden"},{"input":"0.5 -3","expected":"1","type":"hidden"}],
   },
   {
     id: 45,
@@ -1053,7 +1069,8 @@ int main() {
     cout << ans << "\\n";
     return 0;
 }`,
-    solution: "二分查找在 [1, x] 范围内搜索最大的整数 ans 使得 ans² ≤ x。初始化 left=1, right=x，每次取中点 mid = left+(right-left)/2（避免溢出）。若 mid² ≤ x 则记录答案并向右搜索；否则向左搜索。当 left > right 时循环结束，ans 即为结果。关键细节：使用 long long 存储 mid*mid 防止 int 溢出。时间复杂度 O(log x)，比逐个尝试 O(√x) 高效得多。"
+    solution: "二分查找在 [1, x] 范围内搜索最大的整数 ans 使得 ans² ≤ x。初始化 left=1, right=x，每次取中点 mid = left+(right-left)/2（避免溢出）。若 mid² ≤ x 则记录答案并向右搜索；否则向左搜索。当 left > right 时循环结束，ans 即为结果。关键细节：使用 long long 存储 mid*mid 防止 int 溢出。时间复杂度 O(log x)，比逐个尝试 O(√x) 高效得多。",
+    test_cases: [{"input":"8","expected":"2","type":"sample"},{"input":"4","expected":"2","type":"hidden"},{"input":"8","expected":"2","type":"hidden"},{"input":"0","expected":"0","type":"hidden"},{"input":"1","expected":"1","type":"hidden"},{"input":"2147395599","expected":"46339","type":"hidden"}],
   },
   {
     id: 46,
@@ -1099,7 +1116,8 @@ int main() {
     cout << countPrimes(n) << "\\n";
     return 0;
 }`,
-    solution: "埃氏筛的核心思想：从 2 开始，将每个质数的倍数全部标记为非质数。优化点：1) 外层循环只到 √n（因为更大质数的倍数已被更小质数标记）；2) 内层循环从 i² 开始（因为 i×k (k<i) 已被之前质数标记过）。算法标记所有合数后，遍历数组统计仍为 true 的数量即为质数个数。时间复杂度 O(n log log n)，空间 O(n)。这是 10⁷ 以内统计质数的最常用方法。"
+    solution: "埃氏筛的核心思想：从 2 开始，将每个质数的倍数全部标记为非质数。优化点：1) 外层循环只到 √n（因为更大质数的倍数已被更小质数标记）；2) 内层循环从 i² 开始（因为 i×k (k<i) 已被之前质数标记过）。算法标记所有合数后，遍历数组统计仍为 true 的数量即为质数个数。时间复杂度 O(n log log n)，空间 O(n)。这是 10⁷ 以内统计质数的最常用方法。",
+    test_cases: [{"input":"10","expected":"4","type":"sample"},{"input":"10","expected":"4","type":"hidden"},{"input":"0","expected":"0","type":"hidden"},{"input":"1","expected":"0","type":"hidden"},{"input":"100","expected":"25","type":"hidden"},{"input":"2","expected":"0","type":"hidden"}],
   },
   {
     id: 47,
@@ -1137,7 +1155,8 @@ int main() {
     else cout << gcd(a, b) << "\\n";
     return 0;
 }`,
-    solution: "辗转相除法（欧几里得算法）基于定理：gcd(a, b) = gcd(b, a mod b)。循环中每次用 b 更新为 a % b，a 更新为原来的 b，直到 b 为 0，此时 a 即为最大公约数。时间复杂度 O(log min(a,b))——每两次迭代至少将较大的数减半。C++17 起可使用 std::gcd，但自己实现有助于理解原理。扩展欧几里得算法可在此基础上进一步求解 ax + by = gcd(a,b) 的整数解。"
+    solution: "辗转相除法（欧几里得算法）基于定理：gcd(a, b) = gcd(b, a mod b)。循环中每次用 b 更新为 a % b，a 更新为原来的 b，直到 b 为 0，此时 a 即为最大公约数。时间复杂度 O(log min(a,b))——每两次迭代至少将较大的数减半。C++17 起可使用 std::gcd，但自己实现有助于理解原理。扩展欧几里得算法可在此基础上进一步求解 ax + by = gcd(a,b) 的整数解。",
+    test_cases: [{"input":"48 18","expected":"6","type":"sample"},{"input":"12 18","expected":"6","type":"hidden"},{"input":"7 13","expected":"1","type":"hidden"},{"input":"100 10","expected":"10","type":"hidden"},{"input":"1 1","expected":"1","type":"hidden"}],
   },
   {
     id: 48,
@@ -1201,7 +1220,8 @@ int main() {
     }
     return 0;
 }`,
-    solution: "经典回溯问题：逐行放置皇后，对每行尝试所有列位置。用三个数据结构剪枝：cols 数组标记已占用的列，diag1 集合标记主对角线（row-col 为定值），diag2 集合标记副对角线（row+col 为定值）。若当前列的这三种检查都通过则可放置皇后，递归处理下一行后回溯还原状态。到达第 n 行时找到一个合法解。时间复杂度 O(n!)，但剪枝大幅减少实际搜索量。n ≤ 12 可接受。"
+    solution: "经典回溯问题：逐行放置皇后，对每行尝试所有列位置。用三个数据结构剪枝：cols 数组标记已占用的列，diag1 集合标记主对角线（row-col 为定值），diag2 集合标记副对角线（row+col 为定值）。若当前列的这三种检查都通过则可放置皇后，递归处理下一行后回溯还原状态。到达第 n 行时找到一个合法解。时间复杂度 O(n!)，但剪枝大幅减少实际搜索量。n ≤ 12 可接受。",
+    test_cases: [{"input":"4","expected":"2\n.Q..\n...Q\nQ...\n..Q.\n\n..Q.\nQ...\n...Q\n.Q..","type":"sample"},{"input":"4","expected":"2\n.Q..\n...Q\nQ...\n..Q.\n\n..Q.\nQ...\n...Q\n.Q..","type":"hidden"},{"input":"1","expected":"1\nQ","type":"hidden"},{"input":"8","expected":"92","type":"hidden"}],
   },
   {
     id: 49,
@@ -1270,7 +1290,8 @@ int main() {
     }
     return 0;
 }`,
-    solution: "数独求解使用回溯法：遍历棋盘，找到第一个空格，依次尝试填入 1-9。每次填入前用 isValid 检查行、列、3×3 宫内是否有重复。若合法则填入并递归求解下一个空格；若后续无法求解则回溯（恢复为 '.'）。双层循环中遇到空格立即尝试并返回，避免递归深层爆栈。宫内索引计算：(row/3)*3 + i/3 得到行，(col/3)*3 + i%3 得到列。题目保证唯一解，最终 fill 整个棋盘。"
+    solution: "数独求解使用回溯法：遍历棋盘，找到第一个空格，依次尝试填入 1-9。每次填入前用 isValid 检查行、列、3×3 宫内是否有重复。若合法则填入并递归求解下一个空格；若后续无法求解则回溯（恢复为 '.'）。双层循环中遇到空格立即尝试并返回，避免递归深层爆栈。宫内索引计算：(row/3)*3 + i/3 得到行，(col/3)*3 + i%3 得到列。题目保证唯一解，最终 fill 整个棋盘。",
+    test_cases: [{"input":"53..7....\n6..195...\n.98....6.\n8...6...3\n4..8.3..1\n7...2...6\n.6....28.\n...419..5\n....8..79","expected":"534678912\n672195348\n198342567\n859761423\n426853791\n713924856\n961537284\n287419635\n345286179","type":"sample"},{"input":"53..7....\n6..195...\n.98....6.\n8...6...3\n4..8.3..1\n7...2...6\n.6....28.\n...419..5\n....8..79","expected":"534678912\n672195348\n198342567\n859761423\n426853791\n713924856\n961537284\n287419635\n345286179","type":"hidden"}],
   },
   {
     id: 50,
@@ -1324,7 +1345,8 @@ int main() {
     cout << water << "\\n";
     return 0;
 }`,
-    solution: "双指针法（最优解）：left 和 right 分别从两端向中间移动，维护 leftMax（左侧已遍历的最高柱子）和 rightMax（右侧已遍历的最高柱子）。每次移动较矮一侧的指针：若当前高度大于等于该侧最大值则更新最大值；否则当前位置能接的水量为该侧最大值减去当前高度（因为另一侧至少有这么高）。核心洞察：对于位置 left，若 height[left] < height[right]，则 leftMax 一定 ≤ rightMax，所以接水量由 leftMax 决定。时间复杂度 O(n)，空间 O(1)。"
+    solution: "双指针法（最优解）：left 和 right 分别从两端向中间移动，维护 leftMax（左侧已遍历的最高柱子）和 rightMax（右侧已遍历的最高柱子）。每次移动较矮一侧的指针：若当前高度大于等于该侧最大值则更新最大值；否则当前位置能接的水量为该侧最大值减去当前高度（因为另一侧至少有这么高）。核心洞察：对于位置 left，若 height[left] < height[right]，则 leftMax 一定 ≤ rightMax，所以接水量由 leftMax 决定。时间复杂度 O(n)，空间 O(1)。",
+    test_cases: [{"input":"12\n0 1 0 2 1 0 1 3 2 1 2 1","expected":"6","type":"sample"},{"input":"12\n0 1 0 2 1 0 1 3 2 1 2 1","expected":"6","type":"hidden"},{"input":"6\n4 2 0 3 2 5","expected":"9","type":"hidden"},{"input":"1\n5","expected":"0","type":"hidden"}],
   }
 ];
 

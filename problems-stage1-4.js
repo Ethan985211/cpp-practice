@@ -21,7 +21,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "0 1",
     constraints: "2 ≤ n ≤ 10^4, -10^9 ≤ nums[i] ≤ 10^9, -10^9 ≤ target ≤ 10^9",
     cppCode: "#include <iostream>\n#include <vector>\n#include <unordered_map>\nusing namespace std;\n\nint main() {\n    int n, target;\n    cin >> n;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n    cin >> target;\n\n    unordered_map<int, int> mp;\n    for (int i = 0; i < n; i++) {\n        int complement = target - nums[i];\n        if (mp.count(complement)) {\n            cout << mp[complement] << \" \" << i << endl;\n            return 0;\n        }\n        mp[nums[i]] = i;\n    }\n    return 0;\n}",
-    solution: "遍历数组时，对每个元素 nums[i]，计算其与 target 的差值 complement。用哈希表存储已遍历过的元素值及其下标。若 complement 已在哈希表中，说明找到了匹配的两个数，输出它们的下标即可。哈希表查找为 O(1)，整体只需一次遍历。注意题目保证有且仅有一个答案，因此无需处理无解情况。"
+    solution: "遍历数组时，对每个元素 nums[i]，计算其与 target 的差值 complement。用哈希表存储已遍历过的元素值及其下标。若 complement 已在哈希表中，说明找到了匹配的两个数，输出它们的下标即可。哈希表查找为 O(1)，整体只需一次遍历。注意题目保证有且仅有一个答案，因此无需处理无解情况。",
+    test_cases: [{"input":"4\n2 7 11 15\n9","expected":"0 1","type":"sample"},{"input":"2\n3 3\n6","expected":"0 1","type":"hidden"},{"input":"3\n1 2 3\n5","expected":"1 2","type":"hidden"},{"input":"5\n-1 0 1 2 -2\n0","expected":"0 2","type":"hidden"},{"input":"4\n1000000000 999999999 1 2\n1000000001","expected":"0 2","type":"hidden"},{"input":"6\n1 1 1 1 1 1\n2","expected":"0 1","type":"hidden"}],
   },
   {
     id: 2,
@@ -41,7 +42,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "1",
     constraints: "-2^31 ≤ x ≤ 2^31 - 1",
     cppCode: "#include <iostream>\nusing namespace std;\n\nint main() {\n    int x;\n    cin >> x;\n    if (x < 0 || (x % 10 == 0 && x != 0)) {\n        cout << 0 << endl;\n        return 0;\n    }\n    int reversed = 0;\n    while (x > reversed) {\n        reversed = reversed * 10 + x % 10;\n        x /= 10;\n    }\n    cout << (x == reversed || x == reversed / 10 ? 1 : 0) << endl;\n    return 0;\n}",
-    solution: "负数一定不是回文数；非零但个位为0的数也不是。采用反转一半数字的方法：不断取出 x 的个位追加到 reversed 尾部，同时将 x 缩小10倍。当 x ≤ reversed 时停止，此时若 x == reversed（偶数位）或 x == reversed/10（奇数位），则为回文数。此方法避免了将整个整数反转可能导致的溢出问题，空间复杂度仅 O(1)。"
+    solution: "负数一定不是回文数；非零但个位为0的数也不是。采用反转一半数字的方法：不断取出 x 的个位追加到 reversed 尾部，同时将 x 缩小10倍。当 x ≤ reversed 时停止，此时若 x == reversed（偶数位）或 x == reversed/10（奇数位），则为回文数。此方法避免了将整个整数反转可能导致的溢出问题，空间复杂度仅 O(1)。",
+    test_cases: [{"input":"121","expected":"1","type":"sample"},{"input":"0","expected":"1","type":"hidden"},{"input":"10","expected":"0","type":"hidden"},{"input":"-121","expected":"0","type":"hidden"},{"input":"1221","expected":"1","type":"hidden"},{"input":"12321","expected":"1","type":"hidden"},{"input":"1001","expected":"1","type":"hidden"}],
   },
   {
     id: 3,
@@ -61,7 +63,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "1994",
     constraints: "1 ≤ s.length ≤ 15, s 仅含字符 I V X L C D M",
     cppCode: "#include <iostream>\n#include <string>\n#include <unordered_map>\nusing namespace std;\n\nint main() {\n    string s;\n    cin >> s;\n    unordered_map<char, int> mp = {\n        {'I', 1}, {'V', 5}, {'X', 10}, {'L', 50},\n        {'C', 100}, {'D', 500}, {'M', 1000}\n    };\n    int ans = 0, n = s.size();\n    for (int i = 0; i < n; i++) {\n        if (i < n - 1 && mp[s[i]] < mp[s[i + 1]])\n            ans -= mp[s[i]];\n        else\n            ans += mp[s[i]];\n    }\n    cout << ans << endl;\n    return 0;\n}",
-    solution: "建立字符到数值的映射表。从左到右遍历字符串：若当前字符的值小于下一个字符的值（如 IV 中的 I=1 < V=5），说明是减法情况，应减去当前值；否则直接加上当前值。最后累加结果即为所求。例如 MCMXCIV：M=1000, C<M 所以减 C 加 M=1900, X<C 减 X 加 C=1990, I<V 减 I 加 V=1994。"
+    solution: "建立字符到数值的映射表。从左到右遍历字符串：若当前字符的值小于下一个字符的值（如 IV 中的 I=1 < V=5），说明是减法情况，应减去当前值；否则直接加上当前值。最后累加结果即为所求。例如 MCMXCIV：M=1000, C<M 所以减 C 加 M=1900, X<C 减 X 加 C=1990, I<V 减 I 加 V=1994。",
+    test_cases: [{"input":"MCMXCIV","expected":"1994","type":"sample"},{"input":"III","expected":"3","type":"hidden"},{"input":"IV","expected":"4","type":"hidden"},{"input":"IX","expected":"9","type":"hidden"},{"input":"LVIII","expected":"58","type":"hidden"},{"input":"MCMXCIV","expected":"1994","type":"hidden"},{"input":"XL","expected":"40","type":"hidden"},{"input":"XC","expected":"90","type":"hidden"},{"input":"CD","expected":"400","type":"hidden"},{"input":"CM","expected":"900","type":"hidden"},{"input":"MMMCMXCIX","expected":"3999","type":"hidden"}],
   },
   {
     id: 4,
@@ -81,7 +84,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "fl",
     constraints: "1 ≤ n ≤ 200, 0 ≤ 每个字符串长度 ≤ 200, 字符串仅含小写英文字母",
     cppCode: "#include <iostream>\n#include <vector>\n#include <string>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    vector<string> strs(n);\n    for (int i = 0; i < n; i++) cin >> strs[i];\n\n    if (n == 0 || strs[0].empty()) { cout << endl; return 0; }\n    for (int j = 0; j < (int)strs[0].size(); j++) {\n        char c = strs[0][j];\n        for (int i = 1; i < n; i++) {\n            if (j >= (int)strs[i].size() || strs[i][j] != c) {\n                cout << strs[0].substr(0, j) << endl;\n                return 0;\n            }\n        }\n    }\n    cout << strs[0] << endl;\n    return 0;\n}",
-    solution: "以第一个字符串为基准，逐列扫描。对于第 j 列，取第一个字符串的第 j 个字符 c，检查其他所有字符串的第 j 位是否也等于 c。若某个字符串长度不足 j 或字符不匹配，则公共前缀到此为止，返回第一个字符串的前 j 个字符。若遍历完第一个字符串都没有不匹配，则第一个字符串本身就是最长公共前缀。此方法称为纵向扫描。"
+    solution: "以第一个字符串为基准，逐列扫描。对于第 j 列，取第一个字符串的第 j 个字符 c，检查其他所有字符串的第 j 位是否也等于 c。若某个字符串长度不足 j 或字符不匹配，则公共前缀到此为止，返回第一个字符串的前 j 个字符。若遍历完第一个字符串都没有不匹配，则第一个字符串本身就是最长公共前缀。此方法称为纵向扫描。",
+    test_cases: [{"input":"3\nflower\nflow\nflight","expected":"fl","type":"sample"},{"input":"3\nflower\nflow\nflight","expected":"fl","type":"hidden"},{"input":"3\ndog\nracecar\ncar","expected":"","type":"hidden"},{"input":"2\na\na","expected":"a","type":"hidden"},{"input":"1\nhello","expected":"hello","type":"hidden"},{"input":"3\nab\nabc\nabcd","expected":"ab","type":"hidden"}],
   },
   {
     id: 5,
@@ -101,7 +105,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "1",
     constraints: "1 ≤ s.length ≤ 10^4",
     cppCode: "#include <iostream>\n#include <string>\n#include <stack>\nusing namespace std;\n\nint main() {\n    string s;\n    cin >> s;\n    stack<char> st;\n    for (char c : s) {\n        if (c == '(' || c == '{' || c == '[') {\n            st.push(c);\n        } else {\n            if (st.empty()) { cout << 0 << endl; return 0; }\n            char top = st.top();\n            if ((c == ')' && top == '(') ||\n                (c == '}' && top == '{') ||\n                (c == ']' && top == '['))\n                st.pop();\n            else\n                { cout << 0 << endl; return 0; }\n        }\n    }\n    cout << (st.empty() ? 1 : 0) << endl;\n    return 0;\n}",
-    solution: "利用栈的后进先出特性处理括号匹配。遍历字符串：遇到左括号则压入栈中；遇到右括号时，检查栈顶是否为对应的左括号，是则弹栈，否则立即判定无效。遍历结束后，若栈为空说明所有括号都正确匹配闭合，否则有多余的左括号未闭合。注意需要考虑右括号先出现导致栈空的情况。"
+    solution: "利用栈的后进先出特性处理括号匹配。遍历字符串：遇到左括号则压入栈中；遇到右括号时，检查栈顶是否为对应的左括号，是则弹栈，否则立即判定无效。遍历结束后，若栈为空说明所有括号都正确匹配闭合，否则有多余的左括号未闭合。注意需要考虑右括号先出现导致栈空的情况。",
+    test_cases: [{"input":"()[]{}","expected":"1","type":"sample"},{"input":"()","expected":"1","type":"hidden"},{"input":"()[]{}","expected":"1","type":"hidden"},{"input":"(]","expected":"0","type":"hidden"},{"input":"([)]","expected":"0","type":"hidden"},{"input":"{[]}","expected":"1","type":"hidden"},{"input":"((()))","expected":"1","type":"hidden"},{"input":"(()","expected":"0","type":"hidden"},{"input":")(","expected":"0","type":"hidden"}],
   },
   {
     id: 6,
@@ -121,7 +126,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "1 2 2 3 5 6",
     constraints: "0 ≤ m, n ≤ 200, nums1.length = m + n",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int m, n;\n    cin >> m >> n;\n    vector<int> nums1(m + n);\n    for (int i = 0; i < m + n; i++) cin >> nums1[i];\n    vector<int> nums2(n);\n    for (int i = 0; i < n; i++) cin >> nums2[i];\n\n    int i = m - 1, j = n - 1, k = m + n - 1;\n    while (j >= 0) {\n        if (i >= 0 && nums1[i] > nums2[j])\n            nums1[k--] = nums1[i--];\n        else\n            nums1[k--] = nums2[j--];\n    }\n    for (int x = 0; x < m + n; x++)\n        cout << nums1[x] << (x == m + n - 1 ? \"\\n\" : \" \");\n    return 0;\n}",
-    solution: "从后往前填充以避免覆盖未处理的元素。设三个指针：i 指向 nums1 有效元素的末尾（m-1），j 指向 nums2 的末尾（n-1），k 指向 nums1 总空间的末尾（m+n-1）。每次比较 nums1[i] 和 nums2[j]，将较大的放到 k 位置并移动对应指针。当 j < 0 时 nums2 的元素已全放入，nums1 中剩余的元素本身已有序且位置正确，无需额外处理。"
+    solution: "从后往前填充以避免覆盖未处理的元素。设三个指针：i 指向 nums1 有效元素的末尾（m-1），j 指向 nums2 的末尾（n-1），k 指向 nums1 总空间的末尾（m+n-1）。每次比较 nums1[i] 和 nums2[j]，将较大的放到 k 位置并移动对应指针。当 j < 0 时 nums2 的元素已全放入，nums1 中剩余的元素本身已有序且位置正确，无需额外处理。",
+    test_cases: [{"input":"3 3\n1 2 3 0 0 0\n2 5 6","expected":"1 2 2 3 5 6","type":"sample"},{"input":"3 3\n1 2 3\n2 5 6","expected":"0 0 0 1 2 3","type":"hidden"},{"input":"1 1\n1\n2","expected":"0 1","type":"hidden"},{"input":"3 2\n1 3 5\n2 4","expected":"0 0 1 3 5","type":"hidden"},{"input":"0 1\n\n1","expected":"0","type":"hidden"}],
   },
   {
     id: 7,
@@ -141,7 +147,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "2\n2 2",
     constraints: "0 ≤ n ≤ 100",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n, val;\n    cin >> n >> val;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    int slow = 0;\n    for (int fast = 0; fast < n; fast++) {\n        if (nums[fast] != val) {\n            nums[slow] = nums[fast];\n            slow++;\n        }\n    }\n    cout << slow << endl;\n    for (int i = 0; i < slow; i++)\n        cout << nums[i] << (i == slow - 1 ? \"\\n\" : \" \");\n    return 0;\n}",
-    solution: "使用快慢双指针：快指针 fast 遍历整个数组，慢指针 slow 记录下一个不等于 val 的元素应放置的位置。当 fast 指向的元素不等于 val 时，将其复制到 slow 位置，slow 前移。遍历结束后 slow 的值即为移除后的新长度，前 slow 个元素即为结果。此方法原地操作，不需要额外空间，且每个元素最多被复制一次。"
+    solution: "使用快慢双指针：快指针 fast 遍历整个数组，慢指针 slow 记录下一个不等于 val 的元素应放置的位置。当 fast 指向的元素不等于 val 时，将其复制到 slow 位置，slow 前移。遍历结束后 slow 的值即为移除后的新长度，前 slow 个元素即为结果。此方法原地操作，不需要额外空间，且每个元素最多被复制一次。",
+    test_cases: [{"input":"4 3\n3 2 2 3","expected":"2\n2 2","type":"sample"},{"input":"4 3\n3 2 2 3","expected":"2\n2 2","type":"hidden"},{"input":"1 1\n1","expected":"0","type":"hidden"},{"input":"5 0\n0 1 2 3 4","expected":"4\n1 2 3 4","type":"hidden"},{"input":"3 2\n1 1 1","expected":"3\n1 1 1","type":"hidden"}],
   },
   {
     id: 8,
@@ -161,7 +168,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "4",
     constraints: "1 ≤ n ≤ 10^4, -10^4 < nums[i], target < 10^4, 数组元素互不相同且升序排列",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n, target;\n    cin >> n >> target;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    int left = 0, right = n - 1;\n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n        if (nums[mid] == target) { cout << mid << endl; return 0; }\n        else if (nums[mid] < target) left = mid + 1;\n        else right = mid - 1;\n    }\n    cout << -1 << endl;\n    return 0;\n}",
-    solution: "二分查找的核心是不断将搜索区间折半。初始化 left=0, right=n-1。每次取中间位置 mid = left + (right-left)/2（避免整数溢出）。若 nums[mid] 等于 target 则直接返回；若小于 target 说明目标在右半部分，移动 left=mid+1；若大于则目标在左半部分，移动 right=mid-1。循环条件 left≤right 确保区间有效。"
+    solution: "二分查找的核心是不断将搜索区间折半。初始化 left=0, right=n-1。每次取中间位置 mid = left + (right-left)/2（避免整数溢出）。若 nums[mid] 等于 target 则直接返回；若小于 target 说明目标在右半部分，移动 left=mid+1；若大于则目标在左半部分，移动 right=mid-1。循环条件 left≤right 确保区间有效。",
+    test_cases: [{"input":"6 9\n-1 0 3 5 9 12","expected":"4","type":"sample"},{"input":"6 9\n-1 0 3 5 9 12","expected":"4","type":"hidden"},{"input":"1 0\n0","expected":"0","type":"hidden"},{"input":"3 2\n1 3 5","expected":"-1","type":"hidden"},{"input":"4 5\n1 2 3 4","expected":"-1","type":"hidden"}],
   },
   {
     id: 9,
@@ -181,7 +189,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "2",
     constraints: "1 ≤ n ≤ 10^4, -10^4 ≤ nums[i] ≤ 10^4",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n, target;\n    cin >> n >> target;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    int left = 0, right = n;\n    while (left < right) {\n        int mid = left + (right - left) / 2;\n        if (nums[mid] < target) left = mid + 1;\n        else right = mid;\n    }\n    cout << left << endl;\n    return 0;\n}",
-    solution: "这是二分查找的变体——查找第一个大于等于 target 的位置（lower_bound）。与标准二分查找的区别在于区间定义：使用左闭右开区间 [left, right)，right 初始为 n。当 nums[mid] < target 时，mid 及左边都不是答案，left=mid+1；否则答案在左半部分（含 mid），right=mid。循环结束 left 即为插入位置。"
+    solution: "这是二分查找的变体——查找第一个大于等于 target 的位置（lower_bound）。与标准二分查找的区别在于区间定义：使用左闭右开区间 [left, right)，right 初始为 n。当 nums[mid] < target 时，mid 及左边都不是答案，left=mid+1；否则答案在左半部分（含 mid），right=mid。循环结束 left 即为插入位置。",
+    test_cases: [{"input":"4 5\n1 3 5 6","expected":"2","type":"sample"},{"input":"4 5\n1 3 5 6","expected":"2","type":"hidden"},{"input":"4 2\n1 3 5 6","expected":"1","type":"hidden"},{"input":"4 7\n1 3 5 6","expected":"4","type":"hidden"},{"input":"1 0\n1","expected":"0","type":"hidden"}],
   },
   {
     id: 10,
@@ -201,7 +210,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "0 1 9 16 100",
     constraints: "1 ≤ n ≤ 10^4, -10^4 ≤ nums[i] ≤ 10^4",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    vector<int> res(n);\n    int left = 0, right = n - 1, pos = n - 1;\n    while (left <= right) {\n        int lsq = nums[left] * nums[left];\n        int rsq = nums[right] * nums[right];\n        if (lsq > rsq) {\n            res[pos--] = lsq;\n            left++;\n        } else {\n            res[pos--] = rsq;\n            right--;\n        }\n    }\n    for (int i = 0; i < n; i++)\n        cout << res[i] << (i == n - 1 ? \"\\n\" : \" \");\n    return 0;\n}",
-    solution: "原数组非递减，但平方后负数的绝对值可能很大，最大值一定出现在两端。使用双指针从两端向中间扫描：比较 left 和 right 位置的平方值，将较大者放入结果数组的末尾（从后向前填充）。由于每次放入的是当前剩余元素中的最大平方值，结果数组自然非递减。此方法 O(n) 即可完成，比先平方再排序 O(n log n) 更优。"
+    solution: "原数组非递减，但平方后负数的绝对值可能很大，最大值一定出现在两端。使用双指针从两端向中间扫描：比较 left 和 right 位置的平方值，将较大者放入结果数组的末尾（从后向前填充）。由于每次放入的是当前剩余元素中的最大平方值，结果数组自然非递减。此方法 O(n) 即可完成，比先平方再排序 O(n log n) 更优。",
+    test_cases: [{"input":"5\n-4 -1 0 3 10","expected":"0 1 9 16 100","type":"sample"},{"input":"5\n-4 -1 0 3 10","expected":"0 1 9 16 100","type":"hidden"},{"input":"3\n-7 -3 2","expected":"4 9 49","type":"hidden"},{"input":"1\n0","expected":"0","type":"hidden"},{"input":"4\n1 2 3 4","expected":"1 4 9 16","type":"hidden"}],
   },
   {
     id: 11,
@@ -221,7 +231,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "2",
     constraints: "1 ≤ n ≤ 10^5, 1 ≤ nums[i] ≤ 10^4, 1 ≤ target ≤ 10^9",
     cppCode: "#include <iostream>\n#include <vector>\n#include <climits>\nusing namespace std;\n\nint main() {\n    int n, target;\n    cin >> n >> target;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    int left = 0, sum = 0, ans = INT_MAX;\n    for (int right = 0; right < n; right++) {\n        sum += nums[right];\n        while (sum >= target) {\n            ans = min(ans, right - left + 1);\n            sum -= nums[left];\n            left++;\n        }\n    }\n    cout << (ans == INT_MAX ? 0 : ans) << endl;\n    return 0;\n}",
-    solution: "滑动窗口经典问题。维护窗口 [left, right] 内的元素和 sum。right 不断右移扩大窗口并累加 sum；当 sum ≥ target 时，更新最短长度，然后尝试缩小窗口——left 右移并从 sum 中减掉对应值，直到 sum < target。每个元素最多被加入和移出各一次，整体 O(n)。注意初始化 ans 为一个极大值，最后判断是否被更新过。"
+    solution: "滑动窗口经典问题。维护窗口 [left, right] 内的元素和 sum。right 不断右移扩大窗口并累加 sum；当 sum ≥ target 时，更新最短长度，然后尝试缩小窗口——left 右移并从 sum 中减掉对应值，直到 sum < target。每个元素最多被加入和移出各一次，整体 O(n)。注意初始化 ans 为一个极大值，最后判断是否被更新过。",
+    test_cases: [{"input":"6 7\n2 3 1 2 4 3","expected":"2","type":"sample"},{"input":"6 7\n2 3 1 2 4 3","expected":"2","type":"hidden"},{"input":"3 4\n1 4 4","expected":"1","type":"hidden"},{"input":"5 11\n1 1 1 1 1","expected":"0","type":"hidden"}],
   },
   {
     id: 12,
@@ -241,7 +252,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "1 2 3\n8 9 4\n7 6 5",
     constraints: "1 ≤ n ≤ 20",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    vector<vector<int>> matrix(n, vector<int>(n, 0));\n    int top = 0, bottom = n - 1, left = 0, right = n - 1;\n    int num = 1;\n    while (num <= n * n) {\n        for (int i = left; i <= right && num <= n * n; i++)\n            matrix[top][i] = num++;\n        top++;\n        for (int i = top; i <= bottom && num <= n * n; i++)\n            matrix[i][right] = num++;\n        right--;\n        for (int i = right; i >= left && num <= n * n; i--)\n            matrix[bottom][i] = num++;\n        bottom--;\n        for (int i = bottom; i >= top && num <= n * n; i--)\n            matrix[i][left] = num++;\n        left++;\n    }\n    for (int i = 0; i < n; i++) {\n        for (int j = 0; j < n; j++)\n            cout << matrix[i][j] << (j == n - 1 ? \"\\n\" : \" \");\n    }\n    return 0;\n}",
-    solution: "定义四个边界：top、bottom、left、right 分别表示当前螺旋层的上下左右边界。按照右→下→左→上的顺序依次填充，每填充完一条边就将对应边界向内收缩。填充时按「从左到右填充 top 行→上边界下移→从上到下填充 right 列→右边界左移→从右到左填充 bottom 行→下边界上移→从下到上填充 left 列→左边界右移」的循环进行，直到数字填满 n²。"
+    solution: "定义四个边界：top、bottom、left、right 分别表示当前螺旋层的上下左右边界。按照右→下→左→上的顺序依次填充，每填充完一条边就将对应边界向内收缩。填充时按「从左到右填充 top 行→上边界下移→从上到下填充 right 列→右边界左移→从右到左填充 bottom 行→下边界上移→从下到上填充 left 列→左边界右移」的循环进行，直到数字填满 n²。",
+    test_cases: [{"input":"3","expected":"1 2 3\n8 9 4\n7 6 5","type":"sample"},{"input":"3 3","expected":"1 2 3\n8 9 4\n7 6 5","type":"hidden"},{"input":"4 4","expected":"1 2 3 4\n12 13 14 5\n11 16 15 6\n10 9 8 7","type":"hidden"},{"input":"1 1","expected":"1","type":"hidden"},{"input":"2 3","expected":"1 2\n4 3","type":"hidden"}],
   },
   {
     id: 13,
@@ -261,7 +273,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "-1 -1 2\n-1 0 1",
     constraints: "3 ≤ n ≤ 3000, -10^5 ≤ nums[i] ≤ 10^5",
     cppCode: "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    sort(nums.begin(), nums.end());\n    vector<vector<int>> ans;\n    for (int i = 0; i < n - 2; i++) {\n        if (i > 0 && nums[i] == nums[i - 1]) continue;\n        int left = i + 1, right = n - 1;\n        while (left < right) {\n            int sum = nums[i] + nums[left] + nums[right];\n            if (sum == 0) {\n                ans.push_back({nums[i], nums[left], nums[right]});\n                while (left < right && nums[left] == nums[left + 1]) left++;\n                while (left < right && nums[right] == nums[right - 1]) right--;\n                left++; right--;\n            } else if (sum < 0) left++;\n            else right--;\n        }\n    }\n    for (auto& v : ans)\n        cout << v[0] << \" \" << v[1] << \" \" << v[2] << endl;\n    if (ans.empty()) cout << endl;\n    return 0;\n}",
-    solution: "先排序，然后固定第一个数 nums[i]，将问题转化为在 i 右侧用双指针找两数之和等于 -nums[i]。为去重：若 nums[i] 与前一个相同则跳过；找到一组解后，跳过 left 和 right 的重复值。排序保证去重逻辑成立且双指针移动方向正确。需要注意 i 的范围是 [0, n-3]，因为至少需要三个元素。时间复杂度 O(n²)。"
+    solution: "先排序，然后固定第一个数 nums[i]，将问题转化为在 i 右侧用双指针找两数之和等于 -nums[i]。为去重：若 nums[i] 与前一个相同则跳过；找到一组解后，跳过 left 和 right 的重复值。排序保证去重逻辑成立且双指针移动方向正确。需要注意 i 的范围是 [0, n-3]，因为至少需要三个元素。时间复杂度 O(n²)。",
+    test_cases: [{"input":"6\n-1 0 1 2 -1 -4","expected":"-1 -1 2\n-1 0 1","type":"sample"},{"input":"6\n-1 0 1 2 -1 -4","expected":"-1 -1 2\n-1 0 1","type":"hidden"},{"input":"3\n0 1 1","expected":"","type":"hidden"},{"input":"3\n0 0 0","expected":"0 0 0","type":"hidden"},{"input":"5\n-2 0 0 2 2","expected":"-2 0 2","type":"hidden"}],
   },
   {
     id: 14,
@@ -281,7 +294,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "49",
     constraints: "2 ≤ n ≤ 10^5, 0 ≤ height[i] ≤ 10^4",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> height(n);\n    for (int i = 0; i < n; i++) cin >> height[i];\n\n    int left = 0, right = n - 1, ans = 0;\n    while (left < right) {\n        int h = min(height[left], height[right]);\n        ans = max(ans, h * (right - left));\n        if (height[left] < height[right]) left++;\n        else right--;\n    }\n    cout << ans << endl;\n    return 0;\n}",
-    solution: "双指针从两端向中间收敛。容量由较短的边和两边的距离决定：area = min(height[left], height[right]) × (right-left)。每次移动较短的那条边（因为移动较长边不会增加高度，只会减少宽度，容量一定变小）。移动后重新计算面积并更新最大值。此贪心策略正确的原因是：对于当前较短的边，以它为边的所有组合中，当前组合（与最远边配对）已是最优。"
+    solution: "双指针从两端向中间收敛。容量由较短的边和两边的距离决定：area = min(height[left], height[right]) × (right-left)。每次移动较短的那条边（因为移动较长边不会增加高度，只会减少宽度，容量一定变小）。移动后重新计算面积并更新最大值。此贪心策略正确的原因是：对于当前较短的边，以它为边的所有组合中，当前组合（与最远边配对）已是最优。",
+    test_cases: [{"input":"9\n1 8 6 2 5 4 8 3 7","expected":"49","type":"sample"},{"input":"9\n1 8 6 2 5 4 8 3 7","expected":"49","type":"hidden"},{"input":"2\n1 1","expected":"1","type":"hidden"},{"input":"5\n4 3 2 1 4","expected":"16","type":"hidden"}],
   },
   {
     id: 15,
@@ -301,7 +315,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "1 2 3\n1 3 2\n2 1 3\n2 3 1\n3 1 2\n3 2 1",
     constraints: "1 ≤ n ≤ 6",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nvector<vector<int>> ans;\nvector<int> path;\nvector<bool> used;\n\nvoid backtrack(vector<int>& nums) {\n    if (path.size() == nums.size()) {\n        ans.push_back(path);\n        return;\n    }\n    for (int i = 0; i < (int)nums.size(); i++) {\n        if (used[i]) continue;\n        used[i] = true;\n        path.push_back(nums[i]);\n        backtrack(nums);\n        path.pop_back();\n        used[i] = false;\n    }\n}\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n    used.assign(n, false);\n    backtrack(nums);\n    for (auto& v : ans) {\n        for (int i = 0; i < (int)v.size(); i++)\n            cout << v[i] << (i == (int)v.size() - 1 ? \"\\n\" : \" \");\n    }\n    return 0;\n}",
-    solution: "经典回溯问题，用递归树来理解：每层递归决定排列中的一个位置放哪个数。用 used 数组标记已使用的元素避免重复选取。递归终止条件是 path 长度等于 nums 长度，此时将当前排列加入答案。回溯的关键是在递归返回后撤销选择（弹出元素并标记为未使用），以便尝试其他分支。排列数为 n!，每个排列复制需要 O(n)。"
+    solution: "经典回溯问题，用递归树来理解：每层递归决定排列中的一个位置放哪个数。用 used 数组标记已使用的元素避免重复选取。递归终止条件是 path 长度等于 nums 长度，此时将当前排列加入答案。回溯的关键是在递归返回后撤销选择（弹出元素并标记为未使用），以便尝试其他分支。排列数为 n!，每个排列复制需要 O(n)。",
+    test_cases: [{"input":"3\n1 2 3","expected":"1 2 3\n1 3 2\n2 1 3\n2 3 1\n3 1 2\n3 2 1","type":"sample"},{"input":"3\n1 2 3","expected":"1 2 3\n1 3 2\n2 1 3\n2 3 1\n3 1 2\n3 2 1","type":"hidden"}],
   },
   {
     id: 16,
@@ -321,7 +336,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "2 2 3\n2 5",
     constraints: "1 ≤ n ≤ 30, 1 ≤ candidates[i] ≤ 200, 1 ≤ target ≤ 500",
     cppCode: "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nvector<vector<int>> ans;\nvector<int> path;\n\nvoid backtrack(vector<int>& cand, int target, int start, int sum) {\n    if (sum == target) { ans.push_back(path); return; }\n    if (sum > target) return;\n    for (int i = start; i < (int)cand.size(); i++) {\n        path.push_back(cand[i]);\n        backtrack(cand, target, i, sum + cand[i]);\n        path.pop_back();\n    }\n}\n\nint main() {\n    int n, target;\n    cin >> n >> target;\n    vector<int> cand(n);\n    for (int i = 0; i < n; i++) cin >> cand[i];\n    sort(cand.begin(), cand.end());\n    backtrack(cand, target, 0, 0);\n    for (auto& v : ans) {\n        for (int i = 0; i < (int)v.size(); i++)\n            cout << v[i] << (i == (int)v.size() - 1 ? \"\\n\" : \" \");\n    }\n    if (ans.empty()) cout << endl;\n    return 0;\n}",
-    solution: "回溯 + 剪枝。与全排列不同，组合问题需避免重复——用 start 参数控制搜索起点，每次递归从 start 开始（而非从头），保证组合按非递减顺序生成。元素可重复使用，因此递归时 start 仍传 i 而非 i+1。剪枝优化：若当前 sum 已超过 target 则直接返回（因为数组已排序，后续只会更大）。先排序有助于剪枝。"
+    solution: "回溯 + 剪枝。与全排列不同，组合问题需避免重复——用 start 参数控制搜索起点，每次递归从 start 开始（而非从头），保证组合按非递减顺序生成。元素可重复使用，因此递归时 start 仍传 i 而非 i+1。剪枝优化：若当前 sum 已超过 target 则直接返回（因为数组已排序，后续只会更大）。先排序有助于剪枝。",
+    test_cases: [{"input":"3 7\n2 3 5","expected":"2 2 3\n2 5","type":"sample"},{"input":"3 7\n2 3 5","expected":"2 2 3\n2 5","type":"hidden"}],
   },
   {
     id: 17,
@@ -341,7 +357,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "\n1\n2\n1 2\n3\n1 3\n2 3\n1 2 3",
     constraints: "1 ≤ n ≤ 10",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    int total = 1 << n;\n    for (int mask = 0; mask < total; mask++) {\n        bool first = true;\n        for (int i = 0; i < n; i++) {\n            if (mask & (1 << i)) {\n                if (!first) cout << \" \";\n                cout << nums[i];\n                first = false;\n            }\n        }\n        cout << endl;\n    }\n    return 0;\n}",
-    solution: "使用位运算枚举所有子集。n 个元素的子集共有 2^n 个，每个子集对应一个长度为 n 的二进制数：第 i 位为 1 表示选择 nums[i]。遍历 mask 从 0 到 (1<<n)-1，对每个 mask 检查每一位是否为 1，若为 1 则输出对应元素。此方法简洁高效，不需要递归栈。当 n ≤ 10 时 2^n ≤ 1024，完全可行。空子集对应 mask=0，输出空行。"
+    solution: "使用位运算枚举所有子集。n 个元素的子集共有 2^n 个，每个子集对应一个长度为 n 的二进制数：第 i 位为 1 表示选择 nums[i]。遍历 mask 从 0 到 (1<<n)-1，对每个 mask 检查每一位是否为 1，若为 1 则输出对应元素。此方法简洁高效，不需要递归栈。当 n ≤ 10 时 2^n ≤ 1024，完全可行。空子集对应 mask=0，输出空行。",
+    test_cases: [{"input":"3\n1 2 3","expected":"1\n2\n1 2\n3\n1 3\n2 3\n1 2 3","type":"sample"},{"input":"3\n1 2 3","expected":"1\n2\n1 2\n3\n1 3\n2 3\n1 2 3","type":"hidden"}],
   },
   {
     id: 18,
@@ -361,7 +378,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "1",
     constraints: "1 ≤ m, n ≤ 300",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nvoid dfs(vector<vector<char>>& grid, int i, int j, int m, int n) {\n    if (i < 0 || i >= m || j < 0 || j >= n || grid[i][j] == '0') return;\n    grid[i][j] = '0';\n    dfs(grid, i + 1, j, m, n);\n    dfs(grid, i - 1, j, m, n);\n    dfs(grid, i, j + 1, m, n);\n    dfs(grid, i, j - 1, m, n);\n}\n\nint main() {\n    int m, n;\n    cin >> m >> n;\n    vector<vector<char>> grid(m, vector<char>(n));\n    for (int i = 0; i < m; i++)\n        for (int j = 0; j < n; j++)\n            cin >> grid[i][j];\n\n    int count = 0;\n    for (int i = 0; i < m; i++) {\n        for (int j = 0; j < n; j++) {\n            if (grid[i][j] == '1') {\n                count++;\n                dfs(grid, i, j, m, n);\n            }\n        }\n    }\n    cout << count << endl;\n    return 0;\n}",
-    solution: "遍历每个格子，遇到陆地 '1' 时岛屿计数加1，然后通过 DFS 将与该陆地连通的所有陆地标记为已访问（改为 '0'）。DFS 递归向上下左右四个方向探索，遇到边界或水则返回。通过「沉岛法」确保每块陆地只被计数一次，同属一个岛屿的所有陆地在一次 DFS 中被全部清除。BFS 也可以实现，思路相同只是搜索顺序不同。"
+    solution: "遍历每个格子，遇到陆地 '1' 时岛屿计数加1，然后通过 DFS 将与该陆地连通的所有陆地标记为已访问（改为 '0'）。DFS 递归向上下左右四个方向探索，遇到边界或水则返回。通过「沉岛法」确保每块陆地只被计数一次，同属一个岛屿的所有陆地在一次 DFS 中被全部清除。BFS 也可以实现，思路相同只是搜索顺序不同。",
+    test_cases: [{"input":"4 5\n11110\n11010\n11000\n00000","expected":"1","type":"sample"},{"input":"4 5\n11110\n11010\n11000\n00000","expected":"1","type":"hidden"}],
   },
   {
     id: 19,
@@ -381,7 +399,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "XXXX\nXXXX\nXXXX\nXOXX",
     constraints: "1 ≤ m, n ≤ 200",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nvoid dfs(vector<vector<char>>& board, int i, int j, int m, int n) {\n    if (i < 0 || i >= m || j < 0 || j >= n || board[i][j] != 'O') return;\n    board[i][j] = '#';\n    dfs(board, i + 1, j, m, n);\n    dfs(board, i - 1, j, m, n);\n    dfs(board, i, j + 1, m, n);\n    dfs(board, i, j - 1, m, n);\n}\n\nint main() {\n    int m, n;\n    cin >> m >> n;\n    vector<vector<char>> board(m, vector<char>(n));\n    for (int i = 0; i < m; i++)\n        for (int j = 0; j < n; j++)\n            cin >> board[i][j];\n\n    for (int i = 0; i < m; i++) {\n        if (board[i][0] == 'O') dfs(board, i, 0, m, n);\n        if (board[i][n-1] == 'O') dfs(board, i, n-1, m, n);\n    }\n    for (int j = 0; j < n; j++) {\n        if (board[0][j] == 'O') dfs(board, 0, j, m, n);\n        if (board[m-1][j] == 'O') dfs(board, m-1, j, m, n);\n    }\n    for (int i = 0; i < m; i++) {\n        for (int j = 0; j < n; j++) {\n            if (board[i][j] == 'O') board[i][j] = 'X';\n            else if (board[i][j] == '#') board[i][j] = 'O';\n            cout << board[i][j];\n        }\n        cout << endl;\n    }\n    return 0;\n}",
-    solution: "逆向思维：与其寻找被围绕的 O，不如标记不被围绕的 O。从四条边界开始 DFS，将所有与边界相连的 O 临时标记为 #。遍历结束后，剩余的 O 就是被围绕的（改为 X），再将 # 恢复为 O。这样避免了复杂的「判断是否被围绕」逻辑。DFS 的递归深度在最坏情况下可达 m×n，可以用 BFS 避免栈溢出。"
+    solution: "逆向思维：与其寻找被围绕的 O，不如标记不被围绕的 O。从四条边界开始 DFS，将所有与边界相连的 O 临时标记为 #。遍历结束后，剩余的 O 就是被围绕的（改为 X），再将 # 恢复为 O。这样避免了复杂的「判断是否被围绕」逻辑。DFS 的递归深度在最坏情况下可达 m×n，可以用 BFS 避免栈溢出。",
+    test_cases: [{"input":"4 4\nXXXX\nXOOX\nXXOX\nXOXX","expected":"XXXX\nXXXX\nXXXX\nXOXX","type":"sample"},{"input":"4 4\nXXXX\nXOOX\nXXOX\nXOXX","expected":"XXXX\nXXXX\nXXXX\nXOXX","type":"hidden"}],
   },
   {
     id: 20,
@@ -401,7 +420,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "1",
     constraints: "1 ≤ m, n ≤ 6, 1 ≤ word.length ≤ 15",
     cppCode: "#include <iostream>\n#include <vector>\n#include <string>\nusing namespace std;\n\nbool dfs(vector<vector<char>>& board, string& word, int i, int j, int idx, int m, int n) {\n    if (idx == (int)word.size()) return true;\n    if (i < 0 || i >= m || j < 0 || j >= n || board[i][j] != word[idx]) return false;\n    char tmp = board[i][j];\n    board[i][j] = '#';\n    bool found = dfs(board, word, i + 1, j, idx + 1, m, n)\n              || dfs(board, word, i - 1, j, idx + 1, m, n)\n              || dfs(board, word, i, j + 1, idx + 1, m, n)\n              || dfs(board, word, i, j - 1, idx + 1, m, n);\n    board[i][j] = tmp;\n    return found;\n}\n\nint main() {\n    int m, n;\n    cin >> m >> n;\n    vector<vector<char>> board(m, vector<char>(n));\n    for (int i = 0; i < m; i++)\n        for (int j = 0; j < n; j++)\n            cin >> board[i][j];\n    string word;\n    cin >> word;\n\n    for (int i = 0; i < m; i++)\n        for (int j = 0; j < n; j++)\n            if (dfs(board, word, i, j, 0, m, n))\n                { cout << 1 << endl; return 0; }\n    cout << 0 << endl;\n    return 0;\n}",
-    solution: "回溯 + DFS。从每个格子出发，尝试匹配 word 的第 0 个字符。DFS 函数检查当前位置是否匹配 word[idx]：若匹配且 idx 为最后一位则成功；否则向四个方向递归匹配下一字符。关键：应将当前格子标记为已访问（如改为 '#'），递归返回后恢复原字符，防止在同一路径中重复使用同一格子。若某个起点成功则立即返回 true。"
+    solution: "回溯 + DFS。从每个格子出发，尝试匹配 word 的第 0 个字符。DFS 函数检查当前位置是否匹配 word[idx]：若匹配且 idx 为最后一位则成功；否则向四个方向递归匹配下一字符。关键：应将当前格子标记为已访问（如改为 '#'），递归返回后恢复原字符，防止在同一路径中重复使用同一格子。若某个起点成功则立即返回 true。",
+    test_cases: [{"input":"3 4\nABCE\nSFCS\nADEE\nABCCED","expected":"1","type":"sample"},{"input":"3 4\nABCE\nSFCS\nADEE\nABCCED","expected":"1","type":"hidden"}],
   },
   {
     id: 21,
@@ -421,7 +441,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "8",
     constraints: "1 ≤ n ≤ 45",
     cppCode: "#include <iostream>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    if (n <= 2) { cout << n << endl; return 0; }\n    int a = 1, b = 2, c;\n    for (int i = 3; i <= n; i++) {\n        c = a + b;\n        a = b;\n        b = c;\n    }\n    cout << b << endl;\n    return 0;\n}",
-    solution: "设 dp[i] 为爬到第 i 阶的方法数。要到达第 i 阶，只能从 i-1 阶走1步或从 i-2 阶走2步到达，因此 dp[i] = dp[i-1] + dp[i-2]。这恰好是斐波那契数列。dp[1]=1（走1步），dp[2]=2（两次1步或一次2步）。由于每项只依赖前两项，可以用滚动变量 a、b 替代数组，将空间复杂度从 O(n) 优化到 O(1)。"
+    solution: "设 dp[i] 为爬到第 i 阶的方法数。要到达第 i 阶，只能从 i-1 阶走1步或从 i-2 阶走2步到达，因此 dp[i] = dp[i-1] + dp[i-2]。这恰好是斐波那契数列。dp[1]=1（走1步），dp[2]=2（两次1步或一次2步）。由于每项只依赖前两项，可以用滚动变量 a、b 替代数组，将空间复杂度从 O(n) 优化到 O(1)。",
+    test_cases: [{"input":"5","expected":"8","type":"sample"},{"input":"2","expected":"2","type":"hidden"},{"input":"3","expected":"3","type":"hidden"},{"input":"5","expected":"8","type":"hidden"},{"input":"10","expected":"89","type":"hidden"},{"input":"1","expected":"1","type":"hidden"}],
   },
   {
     id: 22,
@@ -441,7 +462,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "6",
     constraints: "1 ≤ n ≤ 10^5, -10^4 ≤ nums[i] ≤ 10^4",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    int cur = nums[0], ans = nums[0];\n    for (int i = 1; i < n; i++) {\n        cur = max(nums[i], cur + nums[i]);\n        ans = max(ans, cur);\n    }\n    cout << ans << endl;\n    return 0;\n}",
-    solution: "Kadane 算法。定义 cur 为以当前元素结尾的最大子数组和。对于每个 nums[i]，若 cur+nums[i] 还不如 nums[i] 本身大，则放弃前面的累加，重新从 nums[i] 开始（cur = max(nums[i], cur+nums[i])）。同时用 ans 记录全局最大值。核心思想：当之前的累加和变为负数时，它只会拖累后面的和，应当舍弃。一次遍历即可完成。"
+    solution: "Kadane 算法。定义 cur 为以当前元素结尾的最大子数组和。对于每个 nums[i]，若 cur+nums[i] 还不如 nums[i] 本身大，则放弃前面的累加，重新从 nums[i] 开始（cur = max(nums[i], cur+nums[i])）。同时用 ans 记录全局最大值。核心思想：当之前的累加和变为负数时，它只会拖累后面的和，应当舍弃。一次遍历即可完成。",
+    test_cases: [{"input":"9\n-2 1 -3 4 -1 2 1 -5 4","expected":"6","type":"sample"},{"input":"9\n-2 1 -3 4 -1 2 1 -5 4","expected":"6","type":"hidden"},{"input":"1\n1","expected":"1","type":"hidden"},{"input":"2\n-1 -2","expected":"-1","type":"hidden"},{"input":"5\n5 4 -1 7 8","expected":"23","type":"hidden"}],
   },
   {
     id: 23,
@@ -461,7 +483,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "4",
     constraints: "1 ≤ n ≤ 100, 0 ≤ nums[i] ≤ 400",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    if (n == 1) { cout << nums[0] << endl; return 0; }\n    int prev2 = nums[0], prev1 = max(nums[0], nums[1]);\n    for (int i = 2; i < n; i++) {\n        int cur = max(prev1, prev2 + nums[i]);\n        prev2 = prev1;\n        prev1 = cur;\n    }\n    cout << prev1 << endl;\n    return 0;\n}",
-    solution: "定义 dp[i] 为偷前 i 间房的最大金额。对于第 i 间房，有两种选择：不偷（则收益为 dp[i-1]）；偷（则第 i-1 间不能偷，收益为 dp[i-2]+nums[i]）。因此 dp[i]=max(dp[i-1], dp[i-2]+nums[i])。边界：dp[0]=nums[0]，dp[1]=max(nums[0], nums[1])。因每项只依赖前两项，可用两个变量代替数组，空间优化到 O(1)。"
+    solution: "定义 dp[i] 为偷前 i 间房的最大金额。对于第 i 间房，有两种选择：不偷（则收益为 dp[i-1]）；偷（则第 i-1 间不能偷，收益为 dp[i-2]+nums[i]）。因此 dp[i]=max(dp[i-1], dp[i-2]+nums[i])。边界：dp[0]=nums[0]，dp[1]=max(nums[0], nums[1])。因每项只依赖前两项，可用两个变量代替数组，空间优化到 O(1)。",
+    test_cases: [{"input":"4\n1 2 3 1","expected":"4","type":"sample"},{"input":"4\n1 2 3 1","expected":"4","type":"hidden"},{"input":"5\n2 7 9 3 1","expected":"12","type":"hidden"},{"input":"1\n5","expected":"5","type":"hidden"},{"input":"3\n2 1 1","expected":"3","type":"hidden"}],
   },
   {
     id: 24,
@@ -481,7 +504,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "3",
     constraints: "1 ≤ n ≤ 12, 1 ≤ coins[i] ≤ 2^31-1, 0 ≤ amount ≤ 10^4",
     cppCode: "#include <iostream>\n#include <vector>\n#include <climits>\nusing namespace std;\n\nint main() {\n    int n, amount;\n    cin >> n >> amount;\n    vector<int> coins(n);\n    for (int i = 0; i < n; i++) cin >> coins[i];\n\n    vector<int> dp(amount + 1, INT_MAX);\n    dp[0] = 0;\n    for (int i = 1; i <= amount; i++) {\n        for (int coin : coins) {\n            if (i >= coin && dp[i - coin] != INT_MAX)\n                dp[i] = min(dp[i], dp[i - coin] + 1);\n        }\n    }\n    cout << (dp[amount] == INT_MAX ? -1 : dp[amount]) << endl;\n    return 0;\n}",
-    solution: "完全背包问题。dp[i] 表示凑出金额 i 所需的最少硬币数。初始化 dp[0]=0，其余为 INT_MAX。外层遍历金额 i 从 1 到 amount，内层遍历每种硬币 coin：若 i≥coin 且 dp[i-coin] 可达，则 dp[i] = min(dp[i], dp[i-coin]+1)。最终 dp[amount] 若为 INT_MAX 说明无法凑出。时间复杂度 O(n×amount)，空间 O(amount)。"
+    solution: "完全背包问题。dp[i] 表示凑出金额 i 所需的最少硬币数。初始化 dp[0]=0，其余为 INT_MAX。外层遍历金额 i 从 1 到 amount，内层遍历每种硬币 coin：若 i≥coin 且 dp[i-coin] 可达，则 dp[i] = min(dp[i], dp[i-coin]+1)。最终 dp[amount] 若为 INT_MAX 说明无法凑出。时间复杂度 O(n×amount)，空间 O(amount)。",
+    test_cases: [{"input":"3 11\n1 2 5","expected":"3","type":"sample"},{"input":"3 11\n1 2 5","expected":"3","type":"hidden"}],
   },
   {
     id: 25,
@@ -501,7 +525,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "4",
     constraints: "1 ≤ n ≤ 2500, -10^4 ≤ nums[i] ≤ 10^4",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n    vector<int> nums(n);\n    for (int i = 0; i < n; i++) cin >> nums[i];\n\n    vector<int> dp(n, 1);\n    int ans = 1;\n    for (int i = 1; i < n; i++) {\n        for (int j = 0; j < i; j++) {\n            if (nums[j] < nums[i])\n                dp[i] = max(dp[i], dp[j] + 1);\n        }\n        ans = max(ans, dp[i]);\n    }\n    cout << ans << endl;\n    return 0;\n}",
-    solution: "dp[i] 表示以 nums[i] 结尾的最长递增子序列长度。对于每个 i，向前遍历所有 j < i：若 nums[j] < nums[i]，则 nums[i] 可以接在 nums[j] 后面，dp[i] = max(dp[i], dp[j]+1)。初始 dp[i]=1（子序列至少含自身）。答案为 max(dp[i])。O(n²) 解法适合 n≤2500。进阶可用贪心+二分做到 O(n log n)：维护一个 tails 数组，tails[k] 表示长度为 k+1 的递增子序列的最小末尾值。"
+    solution: "dp[i] 表示以 nums[i] 结尾的最长递增子序列长度。对于每个 i，向前遍历所有 j < i：若 nums[j] < nums[i]，则 nums[i] 可以接在 nums[j] 后面，dp[i] = max(dp[i], dp[j]+1)。初始 dp[i]=1（子序列至少含自身）。答案为 max(dp[i])。O(n²) 解法适合 n≤2500。进阶可用贪心+二分做到 O(n log n)：维护一个 tails 数组，tails[k] 表示长度为 k+1 的递增子序列的最小末尾值。",
+    test_cases: [{"input":"8\n10 9 2 5 3 7 101 18","expected":"4","type":"sample"},{"input":"8\n10 9 2 5 3 7 101 18","expected":"4","type":"hidden"},{"input":"5\n0 1 0 3 2","expected":"3","type":"hidden"},{"input":"1\n1","expected":"1","type":"hidden"}],
   },
   {
     id: 26,
@@ -521,7 +546,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "28",
     constraints: "1 ≤ m, n ≤ 100",
     cppCode: "#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    int m, n;\n    cin >> m >> n;\n    vector<int> dp(n, 1);\n    for (int i = 1; i < m; i++) {\n        for (int j = 1; j < n; j++) {\n            dp[j] += dp[j - 1];\n        }\n    }\n    cout << dp[n - 1] << endl;\n    return 0;\n}",
-    solution: "到达格子 (i,j) 的路径数等于到达其上方格子 (i-1,j) 和左方格子 (i,j-1) 的路径数之和：dp[i][j] = dp[i-1][j] + dp[i][j-1]。第一行和第一列只能沿一个方向到达，路径数均为1。用一维数组优化：dp[j] 表示当前行第 j 列的路径数，更新时 dp[j] += dp[j-1]（dp[j-1] 是本行刚更新的，dp[j] 是上一行的值）。"
+    solution: "到达格子 (i,j) 的路径数等于到达其上方格子 (i-1,j) 和左方格子 (i,j-1) 的路径数之和：dp[i][j] = dp[i-1][j] + dp[i][j-1]。第一行和第一列只能沿一个方向到达，路径数均为1。用一维数组优化：dp[j] 表示当前行第 j 列的路径数，更新时 dp[j] += dp[j-1]（dp[j-1] 是本行刚更新的，dp[j] 是上一行的值）。",
+    test_cases: [{"input":"3 7","expected":"28","type":"sample"},{"input":"3 7","expected":"28","type":"hidden"},{"input":"3 2","expected":"3","type":"hidden"},{"input":"1 1","expected":"1","type":"hidden"},{"input":"10 10","expected":"48620","type":"hidden"}],
   },
   {
     id: 27,
@@ -541,7 +567,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "3",
     constraints: "0 ≤ word1.length, word2.length ≤ 500",
     cppCode: "#include <iostream>\n#include <string>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    string word1, word2;\n    cin >> word1 >> word2;\n    int m = word1.size(), n = word2.size();\n    vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));\n    for (int i = 0; i <= m; i++) dp[i][0] = i;\n    for (int j = 0; j <= n; j++) dp[0][j] = j;\n    for (int i = 1; i <= m; i++) {\n        for (int j = 1; j <= n; j++) {\n            if (word1[i - 1] == word2[j - 1])\n                dp[i][j] = dp[i - 1][j - 1];\n            else\n                dp[i][j] = min({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]}) + 1;\n        }\n    }\n    cout << dp[m][n] << endl;\n    return 0;\n}",
-    solution: "经典二维 DP。dp[i][j] 表示 word1 前 i 个字符转换为 word2 前 j 个字符的最小操作数。若 word1[i-1]==word2[j-1]，无需操作：dp[i][j]=dp[i-1][j-1]。否则考虑三种操作：删除 word1 字符（dp[i-1][j]+1）、插入 word2 字符（dp[i][j-1]+1）、替换（dp[i-1][j-1]+1），取最小值。边界：dp[i][0]=i（全删除），dp[0][j]=j（全插入）。"
+    solution: "经典二维 DP。dp[i][j] 表示 word1 前 i 个字符转换为 word2 前 j 个字符的最小操作数。若 word1[i-1]==word2[j-1]，无需操作：dp[i][j]=dp[i-1][j-1]。否则考虑三种操作：删除 word1 字符（dp[i-1][j]+1）、插入 word2 字符（dp[i][j-1]+1）、替换（dp[i-1][j-1]+1），取最小值。边界：dp[i][0]=i（全删除），dp[0][j]=j（全插入）。",
+    test_cases: [{"input":"horse\nros","expected":"3","type":"sample"},{"input":"horse\nros","expected":"3","type":"hidden"},{"input":"intention\nexecution","expected":"5","type":"hidden"},{"input":"a\nb","expected":"1","type":"hidden"},{"input":"abc\nabc","expected":"0","type":"hidden"}],
   },
   {
     id: 28,
@@ -561,7 +588,8 @@ const PROBLEMS_STAGE1_4 = [
     sampleOutput: "3",
     constraints: "1 ≤ text1.length, text2.length ≤ 1000",
     cppCode: "#include <iostream>\n#include <string>\n#include <vector>\nusing namespace std;\n\nint main() {\n    string text1, text2;\n    cin >> text1 >> text2;\n    int m = text1.size(), n = text2.size();\n    vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));\n    for (int i = 1; i <= m; i++) {\n        for (int j = 1; j <= n; j++) {\n            if (text1[i - 1] == text2[j - 1])\n                dp[i][j] = dp[i - 1][j - 1] + 1;\n            else\n                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);\n        }\n    }\n    cout << dp[m][n] << endl;\n    return 0;\n}",
-    solution: "dp[i][j] 表示 text1 前 i 个字符与 text2 前 j 个字符的 LCS 长度。若 text1[i-1]==text2[j-1]，该字符可以被包含：dp[i][j]=dp[i-1][j-1]+1。否则，该字符不能同时出现在 LCS：dp[i][j]=max(dp[i-1][j], dp[i][j-1])。本题与编辑距离同为经典字符串 DP，区别在于编辑距离考虑三种操作的最小代价，LCS 只关心匹配字符数量。"
+    solution: "dp[i][j] 表示 text1 前 i 个字符与 text2 前 j 个字符的 LCS 长度。若 text1[i-1]==text2[j-1]，该字符可以被包含：dp[i][j]=dp[i-1][j-1]+1。否则，该字符不能同时出现在 LCS：dp[i][j]=max(dp[i-1][j], dp[i][j-1])。本题与编辑距离同为经典字符串 DP，区别在于编辑距离考虑三种操作的最小代价，LCS 只关心匹配字符数量。",
+    test_cases: [{"input":"abcde\nace","expected":"3","type":"sample"},{"input":"abcde\nace","expected":"3","type":"hidden"},{"input":"abc\nabc","expected":"3","type":"hidden"},{"input":"abc\ndef","expected":"0","type":"hidden"},{"input":"ezupkr\nubmrapg","expected":"2","type":"hidden"}],
   }
 ];
 
