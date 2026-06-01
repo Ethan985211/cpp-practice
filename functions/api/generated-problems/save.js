@@ -34,15 +34,23 @@ export async function onRequestPost({ env, request }) {
   const description = practice.description || '';
   const hint = practice.solution_hint || '';
 
-  // Check for duplicate title
+  // Check for duplicate title — if exists, append suffix instead of rejecting
+  let finalTitle = practice.title;
+  let duplicate = false;
   const existing = await db.prepare('SELECT id FROM problems WHERE title = ?').bind(practice.title).first();
   if (existing) {
-    return addCORS(Response.json({
-      success: true,
-      duplicate: true,
-      message: '题库中已有相似题目',
-      problem_id: existing.id
-    }), request);
+    // Check with suffixes until we find a unique name
+    const suffixes = ['（练习）', '（变体）', '（进阶）'];
+    for (const suffix of suffixes) {
+      const testTitle = practice.title + suffix;
+      const recheck = await db.prepare('SELECT id FROM problems WHERE title = ?').bind(testTitle).first();
+      if (!recheck) { finalTitle = testTitle; break; }
+    }
+    if (finalTitle === practice.title) {
+      // All suffixes taken, use timestamp
+      finalTitle = practice.title + '（' + Date.now().toString(36) + '）';
+    }
+    duplicate = true;
   }
 
   // Normalize test cases
@@ -53,7 +61,7 @@ export async function onRequestPost({ env, request }) {
   }));
 
   const newId = await createProblem(db, {
-    title: practice.title,
+    title: finalTitle,
     difficulty,
     category,
     description,
@@ -70,7 +78,7 @@ export async function onRequestPost({ env, request }) {
   // Build complete problem object for frontend
   const problem = {
     id: newId,
-    title: practice.title,
+    title: finalTitle,
     difficulty: difficultyLabel,
     stage: 8,
     stageName: 'AI生成练习',
@@ -108,7 +116,8 @@ export async function onRequestPost({ env, request }) {
   return addCORS(Response.json({
     success: true,
     problem_id: newId,
-    problem
+    problem,
+    duplicate: duplicate || false
   }), request);
 }
 

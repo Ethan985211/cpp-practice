@@ -584,7 +584,7 @@ function saveProgress(p) {
   localStorage.setItem(PK, JSON.stringify(p));
   // Sync to server if logged in
   if (acctLoggedIn && acctToken) {
-    fetch(JUDGE_URL + "/save-progress", {
+    fetch(AUTH_URL + "/api/save-progress", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -658,7 +658,7 @@ function toggleTheme() {
     : "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css";
   // Sync theme to server
   if (acctLoggedIn && acctToken) {
-    fetch(JUDGE_URL + "/save-progress", {
+    fetch(AUTH_URL + "/api/save-progress", {
       method: "POST",
       headers: {"Content-Type": "application/json", "Authorization": "Bearer " + acctToken},
       body: JSON.stringify({progress: loadProgress(), theme: nt})
@@ -1662,23 +1662,6 @@ async function goToGeneratedProblem() {
     const data = await resp.json();
 
     if (data.success) {
-      if (data.duplicate) {
-        // Forward test cases to CVM if available and problem exists (skip on CF Pages proxy)
-        const tc = _lastAnalysisData.practice.test_cases;
-        if (tc && tc.length >= 5 && JUDGE_URL && JUDGE_URL.indexOf('/proxy') === -1) {
-          try {
-            await fetch(JUDGE_URL + "/add-test-cases", {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({problem_id: data.problem_id, test_cases: tc.map(c => ({input:String(c.input||""),expected:String(c.expected||""),type:"hidden"}))})
-            });
-          } catch(e) { /* non-critical */ }
-        }
-        closeModal();
-        setTimeout(() => openProblem(data.problem_id), 200);
-        return;
-      }
-
       // Forward test cases to CVM judge server (skip on CF Pages proxy)
       const tc = _lastAnalysisData.practice.test_cases;
       if (tc && tc.length >= 5 && JUDGE_URL && JUDGE_URL.indexOf('/proxy') === -1) {
@@ -1689,6 +1672,15 @@ async function goToGeneratedProblem() {
             body: JSON.stringify({problem_id: data.problem_id, test_cases: tc.map(c => ({input:String(c.input||""),expected:String(c.expected||""),type:"hidden"}))})
           });
         } catch(e) { /* non-critical - CVM may be unreachable from CF Pages */ }
+      }
+
+      if (data.duplicate) {
+        // Show a note that title was adjusted
+        const note = document.createElement('div');
+        note.className = 'ai-tip';
+        note.textContent = '题目名已自动调整（原题已存在于题库中）';
+        const panel = document.getElementById("aiPanel");
+        if (panel) panel.appendChild(note);
       }
 
       const existingIds = new Set(allProblems.map(p => p.id));

@@ -76,6 +76,11 @@ export async function initDB(db) {
       score INTEGER DEFAULT 0,
       submitted_at INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS user_progress (
+      username TEXT PRIMARY KEY,
+      progress TEXT DEFAULT '{}',
+      updated_at INTEGER NOT NULL
+    );
     CREATE INDEX IF NOT EXISTS idx_sessions_username ON sessions(username);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_memberships_expire ON memberships(expire_at);
